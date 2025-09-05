@@ -1,4 +1,4 @@
-package team.shdsesc.stocksimul.security;
+package team.shdsesc.stocksimul.auth.config;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,28 +6,37 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import team.shdsesc.stocksimul.auth.filter.ApiLoginFilter;
+import team.shdsesc.stocksimul.auth.filter.TokenCheckFilter;
+import team.shdsesc.stocksimul.auth.handler.APILoginSuccessHandler;
+import team.shdsesc.stocksimul.auth.service.ApiUserDetailsService;
+import team.shdsesc.stocksimul.auth.util.JWTUtil;
 
 @Configuration
 @EnableWebSecurity
 @Log4j2
-@EnableGlobalMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
+    private final ApiUserDetailsService apiUserDetailsService;
+    private final PasswordEncoder passwordEncoder;
+    private final JWTUtil jwtUtil;
 
     @Autowired
-    private ApiUserDetailsService apiUserDetailsService;
-
-    @Autowired
-    private JWTUtil jwtUtil;
+    SecurityConfig(ApiUserDetailsService apiUserDetailsService, PasswordEncoder passwordEncoder, JWTUtil jwtUtil) {
+        this.apiUserDetailsService = apiUserDetailsService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -35,32 +44,34 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
-                .anyRequest().permitAll());
-        http.csrf(csrf -> csrf.disable()); // CSRF 토큰 미사용 설정
+                .requestMatchers("/auth/**").permitAll()
+                .anyRequest().authenticated());
+        http.csrf(AbstractHttpConfigurer::disable); // CSRF 토큰 미사용 설정
 
         // CORS 설정
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-        http.formLogin(c -> {
-            // 이전페이지가 없는 상태에서 로그인성공 후 이동되는 페이지
-            // c.loginPage("/login");
-        });
+        http.formLogin(AbstractHttpConfigurer::disable);
+        http.httpBasic(AbstractHttpConfigurer::disable);
+
         // 로그아웃 설정 (post로만 접근 가능/토큰 필요)
         http.logout(logout -> {
+//            logout.logoutUrl
         });
 
         // JWT 관련 설정
         // AuthenticationManager 설정
-        AuthenticationManagerBuilder authenticationManagerBuilder = http
-                .getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(apiUserDetailsService).passwordEncoder(passwordEncoder());
+        AuthenticationManagerBuilder authenticationManagerBuilder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.userDetailsService(apiUserDetailsService).passwordEncoder(passwordEncoder);
 
         // AuthenticationManager 객체 생성
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
         http.authenticationManager(authenticationManager);
 
         // 필터
-        ApiLoginFilter apiLoginFilter = new ApiLoginFilter("/auth"); // 토큰발급URL (http://localhost:8080/auth)
+        // 토큰발급URL (http://localhost:8080/auth)
+        ApiLoginFilter apiLoginFilter = new ApiLoginFilter("/auth");
         apiLoginFilter.setAuthenticationManager(authenticationManager);
         apiLoginFilter.setAuthenticationSuccessHandler(new APILoginSuccessHandler(jwtUtil));
 
@@ -72,11 +83,6 @@ public class SecurityConfig {
         http.addFilterBefore(tokenCheckFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Bean

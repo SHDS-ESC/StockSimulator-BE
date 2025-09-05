@@ -1,4 +1,4 @@
-package team.shdsesc.stocksimul.security;
+package team.shdsesc.stocksimul.auth.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,17 +24,21 @@ public class AccessTokenException extends RuntimeException {
             this.status = status;
             this.msg = msg;
         }
+
         public int getStatus() {
             return this.status;
         }
+
         public String getMsg() {
             return this.msg;
         }
     }
+
     public AccessTokenException(TOKEN_ERROR error) {
         super(error.name());
         this.token_error = error;
     }
+
     public void sendResponseError(HttpServletResponse response) {
         response.setStatus(token_error.getStatus());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

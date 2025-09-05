@@ -1,4 +1,4 @@
-package team.shdsesc.stocksimul.security;
+package team.shdsesc.stocksimul.auth.filter;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.filter.OncePerRequestFilter;
+import team.shdsesc.stocksimul.auth.exception.AccessTokenException;
+import team.shdsesc.stocksimul.auth.util.JWTUtil;
 
 import java.io.IOException;
 import java.security.SignatureException;
@@ -15,7 +17,7 @@ import java.util.Map;
 
 @Log4j2
 public class TokenCheckFilter extends OncePerRequestFilter {
-    private JWTUtil jwtUtil;
+    private final JWTUtil jwtUtil;
 
     public TokenCheckFilter(JWTUtil jwUtil) {
         this.jwtUtil = jwUtil;
@@ -43,7 +45,7 @@ public class TokenCheckFilter extends OncePerRequestFilter {
     }
 
     // AccessToken 검증
-    private Map<String, Object> validateAccessToken(HttpServletRequest request) throws AccessTokenException {
+    private void validateAccessToken(HttpServletRequest request) throws AccessTokenException {
         String headerStr = request.getHeader("Authorization");
         if (headerStr == null || headerStr.length() < 8) {
             throw new AccessTokenException(AccessTokenException.TOKEN_ERROR.UNACCEPT);
@@ -52,13 +54,12 @@ public class TokenCheckFilter extends OncePerRequestFilter {
         String tokenType = headerStr.substring(0,6);
         String tokenStr = headerStr.substring(7);
 
-        if (tokenType.equalsIgnoreCase("Bearer") == false) {
+        if (!tokenType.equalsIgnoreCase("Bearer")) {
             throw new AccessTokenException(AccessTokenException.TOKEN_ERROR.BADTYPE);
         }
 
         try {
             Map<String, Object> value = jwtUtil.validateToken(tokenStr);
-            return value;
         } catch (MalformedJwtException e) {
             log.info("MalformedJwtException................");
             throw new AccessTokenException(AccessTokenException.TOKEN_ERROR.MALFORM);

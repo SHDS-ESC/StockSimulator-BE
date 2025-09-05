@@ -1,4 +1,4 @@
-package team.shdsesc.stocksimul.security;
+package team.shdsesc.stocksimul.auth.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -8,6 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import team.shdsesc.stocksimul.auth.util.JWTUtil;
 
 import java.io.IOException;
 import java.util.Map;
@@ -21,7 +22,6 @@ public class APILoginSuccessHandler implements AuthenticationSuccessHandler {
         this.jwtUtil = jwtUtil;
     }
 
-
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         log.info("Login Success...."); // 로그인 성공하면
@@ -29,7 +29,7 @@ public class APILoginSuccessHandler implements AuthenticationSuccessHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         log.info(authentication.getName()); // username
-        Map<String, Object> claim = Map.of("client_id", authentication.getName());
+        Map<String, Object> claim = Map.of("userId", authentication.getName());
         // Access Token 유효기간 1일
         String accessToken = jwtUtil.generationToken(claim, 1);
 
