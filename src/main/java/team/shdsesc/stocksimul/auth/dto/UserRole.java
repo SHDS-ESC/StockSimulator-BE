@@ -1,5 +1,5 @@
 package team.shdsesc.stocksimul.auth.dto;
 
-public enum MemberRole {
+public enum UserRole {
     USER, ADMIN
 }

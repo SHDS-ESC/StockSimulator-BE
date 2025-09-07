@@ -12,17 +12,20 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class ApiUserDTO extends User {
+public class UserDTO extends User {
+    private Long userId;
     private String secretId;
+    private String email;
     private String secretPassword;
     private String phoneNumber;
     private int level;
     private List<String> tickerList;
 
-    public ApiUserDTO(String secretId, String secretPassword, String phoneNumber, int level, List<String> tickerList, Collection<? extends GrantedAuthority> authorities) {
-        super(secretId, secretPassword, authorities);
-        this.secretId = secretId;
-        this.secretPassword = secretPassword;
+    public UserDTO(Long userId, String email, String password, String phoneNumber, int level, List<String> tickerList, Collection<? extends GrantedAuthority> authorities) {
+        super(email, password, authorities);
+        this.userId = userId;
+        this.secretId = email;
+        this.secretPassword = password;
         this.phoneNumber = phoneNumber;
         this.level = level;
         this.tickerList = tickerList;

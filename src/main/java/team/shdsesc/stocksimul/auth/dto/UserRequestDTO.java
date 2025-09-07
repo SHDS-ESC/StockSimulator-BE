@@ -9,9 +9,9 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class UserRegisterRequest {
-    private String userId;
+public class UserRequestDTO {
+    private String email;
     private String password;
     private String level;
-    private List<String>tickerList;
+    private List<String> tickerList;
 }
