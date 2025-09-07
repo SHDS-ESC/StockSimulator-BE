@@ -2,20 +2,26 @@ package team.shdsesc.stocksimul.auth.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Getter;
 import org.springframework.http.MediaType;
 
 import java.util.Date;
 import java.util.Map;
 
+@Getter
 public class AccessTokenException extends RuntimeException {
     TOKEN_ERROR token_error;
 
+    @Getter
     public enum TOKEN_ERROR {
         UNACCEPT(401, "Token is null or too short"),
         BADTYPE(401, "Token type Bearer"),
         MALFORM(403, "Malformed Token"),
         BADSIGN(403, "BadSignatured Token"),
-        EXPIRED(403, "Expired Token");
+        EXPIRED(403, "Expired Token"),
+        EMPTY_CLAIMS(403, "Empty Claim Token"),
+        UNSUPPORTED(403, "UnSupported Token"),
+        SEQURITY(403, "Security Exception");
 
         private int status;
         private String msg;
@@ -25,13 +31,6 @@ public class AccessTokenException extends RuntimeException {
             this.msg = msg;
         }
 
-        public int getStatus() {
-            return this.status;
-        }
-
-        public String getMsg() {
-            return this.msg;
-        }
     }
 
     public AccessTokenException(TOKEN_ERROR error) {

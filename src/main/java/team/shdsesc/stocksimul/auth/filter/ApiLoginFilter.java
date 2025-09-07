@@ -36,7 +36,7 @@ public class ApiLoginFilter extends AbstractAuthenticationProcessingFilter {
 
         // 인증처리
         UsernamePasswordAuthenticationToken authenticationToken
-                = new UsernamePasswordAuthenticationToken(map.get("userId"), map.get("password"));
+                = new UsernamePasswordAuthenticationToken(map.get("email"), map.get("password"));
         return getAuthenticationManager().authenticate(authenticationToken);
     }
 }

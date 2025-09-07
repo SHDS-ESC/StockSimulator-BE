@@ -18,24 +18,27 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import team.shdsesc.stocksimul.auth.filter.ApiLoginFilter;
 import team.shdsesc.stocksimul.auth.filter.TokenCheckFilter;
+import team.shdsesc.stocksimul.auth.handler.APILoginFailureHandler;
 import team.shdsesc.stocksimul.auth.handler.APILoginSuccessHandler;
-import team.shdsesc.stocksimul.auth.service.ApiUserDetailsService;
-import team.shdsesc.stocksimul.auth.util.JWTUtil;
+import team.shdsesc.stocksimul.auth.service.UserDetailService;
+import team.shdsesc.stocksimul.auth.util.JwtTokenProvider;
 
 @Configuration
 @EnableWebSecurity
 @Log4j2
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
-    private final ApiUserDetailsService apiUserDetailsService;
+    private final UserDetailService userDetailService;
     private final PasswordEncoder passwordEncoder;
-    private final JWTUtil jwtUtil;
+//    private final JWTUtil jwtUtil;
+
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    SecurityConfig(ApiUserDetailsService apiUserDetailsService, PasswordEncoder passwordEncoder, JWTUtil jwtUtil) {
-        this.apiUserDetailsService = apiUserDetailsService;
+    SecurityConfig(UserDetailService userDetailService, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
+        this.userDetailService = userDetailService;
         this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Bean
@@ -51,19 +54,15 @@ public class SecurityConfig {
         // CORS 설정
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
+        // 자체 로그인 설정으로 폼 로그인은 비활성화
         http.formLogin(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
-
-        // 로그아웃 설정 (post로만 접근 가능/토큰 필요)
-        http.logout(logout -> {
-//            logout.logoutUrl
-        });
 
         // JWT 관련 설정
         // AuthenticationManager 설정
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(apiUserDetailsService).passwordEncoder(passwordEncoder);
+        authenticationManagerBuilder.userDetailsService(userDetailService).passwordEncoder(passwordEncoder);
 
         // AuthenticationManager 객체 생성
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
@@ -72,14 +71,20 @@ public class SecurityConfig {
         // 필터
         // 토큰발급URL (http://localhost:8080/auth)
         ApiLoginFilter apiLoginFilter = new ApiLoginFilter("/auth");
+
+        // AuthenticationManager 세팅
         apiLoginFilter.setAuthenticationManager(authenticationManager);
-        apiLoginFilter.setAuthenticationSuccessHandler(new APILoginSuccessHandler(jwtUtil));
+
+        // 성공 시
+        apiLoginFilter.setAuthenticationSuccessHandler(new APILoginSuccessHandler(jwtTokenProvider));
+        // 실패 시
+        apiLoginFilter.setAuthenticationFailureHandler(new APILoginFailureHandler());
 
         // 필터동작위치
         http.addFilterBefore(apiLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
         // 토큰체크필터
-        TokenCheckFilter tokenCheckFilter = new TokenCheckFilter(jwtUtil);
+        TokenCheckFilter tokenCheckFilter = new TokenCheckFilter(jwtTokenProvider);
         http.addFilterBefore(tokenCheckFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -89,8 +94,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
-        configuration.addAllowedOriginPattern("http://localhost:3000/"); // 모든 도메인 허용
-        configuration.addAllowedOriginPattern("http://localhost:5173/"); // 모든 도메인 허용
+//        configuration.addAllowedOriginPattern("http://localhost:3000/"); // 모든 도메인 허용
+        configuration.addAllowedOriginPattern("http://localhost:5173");
         configuration.addAllowedHeader("*"); // 모든 헤더 허용
         configuration.addAllowedMethod("*"); // 모든 HTTP 메서드 허용
 
