@@ -1,4 +1,4 @@
-package team.shdsesc.stocksimul.auth.config;
+package team.shdsesc.stocksimul.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

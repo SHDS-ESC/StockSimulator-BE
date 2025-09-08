@@ -1,4 +1,4 @@
-package team.shdsesc.stocksimul.auth.config;
+package team.shdsesc.stocksimul.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

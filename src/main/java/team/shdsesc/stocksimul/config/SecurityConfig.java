@@ -1,4 +1,4 @@
-package team.shdsesc.stocksimul.auth.config;
+package team.shdsesc.stocksimul.config;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,29 +20,30 @@ import team.shdsesc.stocksimul.auth.filter.ApiLoginFilter;
 import team.shdsesc.stocksimul.auth.filter.TokenCheckFilter;
 import team.shdsesc.stocksimul.auth.handler.APILoginFailureHandler;
 import team.shdsesc.stocksimul.auth.handler.APILoginSuccessHandler;
-import team.shdsesc.stocksimul.auth.service.UserDetailService;
+import team.shdsesc.stocksimul.user.UserService;
 import team.shdsesc.stocksimul.auth.util.JwtTokenProvider;
+import team.shdsesc.stocksimul.auth.handler.CustomAccessDeniedHandler;
+import team.shdsesc.stocksimul.auth.handler.CustomAuthenticationEntryPoint;
 
 @Configuration
 @EnableWebSecurity
 @Log4j2
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
-    private final UserDetailService userDetailService;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-//    private final JWTUtil jwtUtil;
 
     private final JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    SecurityConfig(UserDetailService userDetailService, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
-        this.userDetailService = userDetailService;
+    SecurityConfig(UserService userService, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
+        this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler accessDeniedHandler, CustomAuthenticationEntryPoint authenticationEntryPoint) throws Exception {
         log.info("security config...............");
 
         http.authorizeHttpRequests(auth -> auth
@@ -58,11 +59,17 @@ public class SecurityConfig {
         http.formLogin(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
 
+        // 예외 처리 - 403/401 핸들러 등록
+        http.exceptionHandling(ex -> ex
+                .accessDeniedHandler(accessDeniedHandler)
+                .authenticationEntryPoint(authenticationEntryPoint)
+        );
+
         // JWT 관련 설정
         // AuthenticationManager 설정
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(userDetailService).passwordEncoder(passwordEncoder);
+        authenticationManagerBuilder.userDetailsService(userService).passwordEncoder(passwordEncoder);
 
         // AuthenticationManager 객체 생성
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();

@@ -1,6 +1,5 @@
-package team.shdsesc.stocksimul.auth.service;
+package team.shdsesc.stocksimul.user;
 
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseCookie;
@@ -10,13 +9,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import team.shdsesc.stocksimul.auth.dao.RedisDAO;
-import team.shdsesc.stocksimul.auth.dto.UserDTO;
-import team.shdsesc.stocksimul.auth.dto.UserRole;
-import team.shdsesc.stocksimul.auth.dto.UserRequestDTO;
-import team.shdsesc.stocksimul.auth.entity.Users;
-import team.shdsesc.stocksimul.auth.repository.UserRepository;
-import team.shdsesc.stocksimul.auth.util.JwtTokenProvider;
+import team.shdsesc.stocksimul.redis.dao.RedisDAO;
 
 import java.util.Map;
 import java.util.Optional;
@@ -24,35 +17,34 @@ import java.util.Optional;
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class UserDetailService implements UserDetailsService {
+public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisDAO redisDAO;
-    // 이 곳에서 DB의 Users Entity를 가져와 인코딩 된 시큐리티의 password와 비교 후 검증 (Config에서 검증하므로 건드릴 것 없음)
+    // 이 곳에서 DB의 UserEntity Entity를 가져와 인코딩 된 시큐리티의 password와 비교 후 검증 (Config에서 검증하므로 건드릴 것 없음)
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<Users> result = userRepository.findUserWithRolesByUserId(email);
+        Optional<UserEntity> result = userRepository.findUserWithRolesByUserId(email);
         log.info("username:{}", email);
-        Users users = result.orElseThrow(() -> new UsernameNotFoundException("Wrong ClientId or ClientSecret"));
-        log.info("Users:{}", users);
-        UserDTO dto = Users.toUsersDTO(users);
+        UserEntity userEntity = result.orElseThrow(() -> new UsernameNotFoundException("Wrong ClientId or ClientSecret"));
+        log.info("UserEntity:{}", userEntity);
+        UserDTO dto = UserEntity.toUsersDTO(userEntity);
         log.info("loadUserByUsername:{}", dto);
         return dto;
     }
 
     public ResponseEntity<UserDTO> registerUser(UserRequestDTO request) {
-        Users users = Users.builder()
+        UserEntity userEntity = UserEntity.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .phoneNumber("010-1234-5678")
                 .level(Integer.parseInt(request.getLevel()))
                 .tickerList(request.getTickerList())
                 .build();
 
-        users.addMemberRole(UserRole.USER);
-        userRepository.save(users);
+        userEntity.addMemberRole(UserRole.USER);
+        userRepository.save(userEntity);
         return ResponseEntity.ok()
-                .body(Users.toUsersDTO(users));
+                .body(UserEntity.toUsersDTO(userEntity));
     }
 
     public ResponseEntity<?> logoutUser(String username){

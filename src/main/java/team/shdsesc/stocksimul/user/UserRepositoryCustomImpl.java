@@ -1,22 +1,20 @@
-package team.shdsesc.stocksimul.auth.repository;
+package team.shdsesc.stocksimul.user;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import team.shdsesc.stocksimul.auth.entity.QUsers;
-import team.shdsesc.stocksimul.auth.entity.Users;
 
 import java.util.Optional;
 
 @RequiredArgsConstructor
-public class UserRepositoryImpl implements UserRepositoryCustom {
+public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Optional<Users> findUserWithRolesByUserId(String email) {
-        QUsers users = QUsers.users ;
+    public Optional<UserEntity> findUserWithRolesByUserId(String email) {
+        QUserEntity users = QUserEntity.userEntity;
 
-        Users result = queryFactory
+        UserEntity result = queryFactory
                 .selectFrom(users)
                 .leftJoin(users.roleSet).fetchJoin()
                 .where(users.email.eq(email))

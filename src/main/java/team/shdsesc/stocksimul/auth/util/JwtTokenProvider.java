@@ -12,8 +12,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
-import team.shdsesc.stocksimul.auth.dao.RedisDAO;
-import team.shdsesc.stocksimul.auth.dto.JwtToken;
+import team.shdsesc.stocksimul.redis.dao.RedisDAO;
 import team.shdsesc.stocksimul.auth.exception.AccessTokenException;
 
 import java.security.Key;
@@ -186,9 +185,8 @@ public class JwtTokenProvider {
     // RefreshToken 검증
     public boolean validateRefreshToken(String token) {
         // 기본적인 JWT 검증
-        if (!validateToken(token)) return false;
-
         try {
+            if (!validateToken(token)) return false;
             // token에서 username 추출하기
             String username = getUserNameFromToken(token);
             // Redis에 저장된 RefreshToken과 비교하기

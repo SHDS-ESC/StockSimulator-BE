@@ -9,7 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import team.shdsesc.stocksimul.auth.dto.JwtToken;
+import team.shdsesc.stocksimul.auth.util.JwtToken;
 import team.shdsesc.stocksimul.auth.util.JwtTokenProvider;
 
 import java.io.IOException;

@@ -1,10 +1,8 @@
-package team.shdsesc.stocksimul.auth.entity;
+package team.shdsesc.stocksimul.user;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import team.shdsesc.stocksimul.auth.dto.UserDTO;
-import team.shdsesc.stocksimul.auth.dto.UserRole;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -17,7 +15,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class Users {
+public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
@@ -27,9 +25,6 @@ public class Users {
 
     @Column(nullable = false)
     private String password;
-
-    @Column(nullable = false, unique = true)
-    private String phoneNumber;
 
     private int level;
 
@@ -42,15 +37,14 @@ public class Users {
     @Enumerated(EnumType.STRING)
     private Set<UserRole> roleSet = new HashSet<>();
 
-    public static UserDTO toUsersDTO(Users users) {
+    public static UserDTO toUsersDTO(UserEntity userEntity) {
         return new UserDTO(
-                users.getUserId(),
-                users.getEmail(),
-                users.getPassword(),
-                users.getPhoneNumber(),
-                users.getLevel(),
-                users.getTickerList(),
-                users.getRoleSet().stream()
+                userEntity.getUserId(),
+                userEntity.getEmail(),
+                userEntity.getPassword(),
+                userEntity.getLevel(),
+                userEntity.getTickerList(),
+                userEntity.getRoleSet().stream()
                         .map(role -> new SimpleGrantedAuthority(role.toString()))
                         .toList()
         );

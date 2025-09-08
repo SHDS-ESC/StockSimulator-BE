@@ -1,5 +1,6 @@
 package team.shdsesc.stocksimul.auth.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -9,22 +10,23 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-import team.shdsesc.stocksimul.auth.dto.JwtToken;
 import team.shdsesc.stocksimul.auth.exception.AccessTokenException;
+import team.shdsesc.stocksimul.auth.util.JwtToken;
 import team.shdsesc.stocksimul.auth.util.JwtTokenProvider;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Log4j2
 public class TokenCheckFilter extends OncePerRequestFilter {
-
-//    private final JWTUtil jwtUtil;
-
     private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public TokenCheckFilter(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -41,10 +43,6 @@ public class TokenCheckFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-
-        log.info("Authorization 헤더: {}", response.getHeader("Authorization"));
-        log.info("Authorization 헤더: {}", request.getHeader("Authorization"));
-
         try {
             // 1. Access Token 검증
             validateAccessToken(request);
@@ -72,6 +70,7 @@ public class TokenCheckFilter extends OncePerRequestFilter {
 
                         // 새 AccessToken 내려주기
                         response.setHeader("Authorization", "Bearer " + newTokens.getAccessToken());
+                        response.setHeader("Access-Control-Expose-Headers", "Authorization");
 
                         // 새 토큰으로 SecurityContext 설정
                         Authentication authentication = jwtTokenProvider.getAuthentication(newTokens.getAccessToken());
@@ -84,14 +83,22 @@ public class TokenCheckFilter extends OncePerRequestFilter {
                         try {
                             userName = jwtTokenProvider.getUserNameFromToken(refreshToken);
                             log.info("만료된 토큰에서 추출한 사용자명: {}", userName);
-
-                            // Redis에서 Refresh Token 삭제
-                            log.info("Redis에서 Refresh Token 삭제 중...");
-                            jwtTokenProvider.deleteRefreshToken(userName);
-                            log.info("Redis에서 Refresh Token 삭제 완료");
                         } catch (Exception ex) {
-                            log.warn("만료된 토큰 처리 중 오류: {}", ex.getMessage());
+                            log.warn("만료된 토큰 처리 중 사용자 추출 오류: {}", ex.getMessage());
                         }
+
+                        // Redis에서 Refresh Token 삭제 (userName이 있을 때만)
+                        if (userName != null && !userName.isEmpty()) {
+                            try {
+                                log.info("Redis에서 Refresh Token 삭제 중...");
+                                jwtTokenProvider.deleteRefreshToken(userName);
+                                log.info("Redis에서 Refresh Token 삭제 완료");
+                            } catch (Exception ex) {
+                                log.warn("Redis Refresh Token 삭제 중 오류: {}", ex.getMessage());
+                            }
+                        }
+
+                        // 쿠키에서 Refresh Token 제거
                         log.info("쿠키에서 Refresh Token 삭제 중...");
                         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
                                 .path("/")
@@ -101,16 +108,25 @@ public class TokenCheckFilter extends OncePerRequestFilter {
                                 .build();
                         response.setHeader("Set-Cookie", cookie.toString());
                         log.info("쿠키에서 Refresh Token 삭제 완료");
-                        jwtTokenProvider.deleteRefreshToken(userName);
+
+                        // 에러 코드 속성 설정 (403/401 핸들러에서 사용 가능)
+                        request.setAttribute("ERROR_CODE", "REFRESH_TOKEN_INVALID");
+                        request.setAttribute("ERROR_MESSAGE", "리프레시 토큰이 유효하지 않습니다. 다시 로그인해주세요.");
+
                         log.info("=== 로그아웃 처리 완료 - 401 응답 전송 ===");
-                        // 401 응답
-                        e.sendResponseError(response);
+                        sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "REFRESH_TOKEN_INVALID", "리프레시 토큰이 유효하지 않습니다. 다시 로그인해주세요.");
+                        return;
                     }
                 } else {
                     log.info("쿠키에 Refresh Token이 없음");
-                    e.sendResponseError(response);
+                    sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "REFRESH_TOKEN_MISSING", "로그인이 필요합니다.");
                 }
+            } else {
+                sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "TOKEN_ERROR", "요청에 필요한 토큰이 없거나 짧습니다.");
             }
+        } catch (Exception e) {
+            log.error("토큰 검증 중 예상치 못한 오류 발생", e);
+            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "AUTHENTICATION_ERROR", "인증 처리 중 오류가 발생했습니다.");
         }
     }
 
@@ -159,5 +175,29 @@ public class TokenCheckFilter extends OncePerRequestFilter {
             }
         }
         return null;
+    }
+
+    // 에러 응답 전송
+    private void sendErrorResponse(HttpServletResponse response, HttpStatus status, String errorCode, String message) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType("application/json;charset=UTF-8");
+
+        // CORS 헤더 추가 - Vite 개발 서버 포트로 수정
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Expose-Headers", "Authorization, Set-Cookie");
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("success", false);
+        errorResponse.put("errorCode", errorCode);
+        errorResponse.put("message", message);
+        errorResponse.put("timestamp", System.currentTimeMillis());
+
+        String jsonResponse = objectMapper.writeValueAsString(errorResponse);
+        response.getWriter().write(jsonResponse);
+
+        log.info("에러 응답 전송 - Status: {}, ErrorCode: {}, Message: {}", status.value(), errorCode, message);
     }
 }

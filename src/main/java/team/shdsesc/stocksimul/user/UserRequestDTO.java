@@ -1,4 +1,4 @@
-package team.shdsesc.stocksimul.auth.dto;
+package team.shdsesc.stocksimul.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

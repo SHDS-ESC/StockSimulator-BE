@@ -1,4 +1,4 @@
-package team.shdsesc.stocksimul.auth.dto;
+package team.shdsesc.stocksimul.user;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -17,16 +17,14 @@ public class UserDTO extends User {
     private String secretId;
     private String email;
     private String secretPassword;
-    private String phoneNumber;
     private int level;
     private List<String> tickerList;
 
-    public UserDTO(Long userId, String email, String password, String phoneNumber, int level, List<String> tickerList, Collection<? extends GrantedAuthority> authorities) {
+    public UserDTO(Long userId, String email, String password, int level, List<String> tickerList, Collection<? extends GrantedAuthority> authorities) {
         super(email, password, authorities);
         this.userId = userId;
         this.secretId = email;
         this.secretPassword = password;
-        this.phoneNumber = phoneNumber;
         this.level = level;
         this.tickerList = tickerList;
     }

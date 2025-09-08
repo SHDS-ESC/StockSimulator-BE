@@ -1,4 +1,4 @@
-package team.shdsesc.stocksimul.auth.dao;
+package team.shdsesc.stocksimul.redis.dao;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
