@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import team.shdsesc.stocksimul.auth.exception.AccessTokenException;
+import team.shdsesc.stocksimul.auth.exception.TokenAuthenticationException;
 import team.shdsesc.stocksimul.auth.util.JwtToken;
 import team.shdsesc.stocksimul.auth.util.JwtTokenProvider;
 
@@ -113,20 +114,30 @@ public class TokenCheckFilter extends OncePerRequestFilter {
                         request.setAttribute("ERROR_CODE", "REFRESH_TOKEN_INVALID");
                         request.setAttribute("ERROR_MESSAGE", "리프레시 토큰이 유효하지 않습니다. 다시 로그인해주세요.");
 
-                        log.info("=== 로그아웃 처리 완료 - 401 응답 전송 ===");
-                        sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "REFRESH_TOKEN_INVALID", "리프레시 토큰이 유효하지 않습니다. 다시 로그인해주세요.");
-                        return;
+                        log.info("=== 로그아웃 처리 완료 - 401 예외 위임 ===");
+                        throw new TokenAuthenticationException(
+                                "REFRESH_TOKEN_INVALID",
+                                "리프레시 토큰이 유효하지 않습니다. 다시 로그인해주세요.");
                     }
                 } else {
                     log.info("쿠키에 Refresh Token이 없음");
-                    sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "REFRESH_TOKEN_MISSING", "로그인이 필요합니다.");
+                    request.setAttribute("ERROR_CODE", "REFRESH_TOKEN_MISSING");
+                    request.setAttribute("ERROR_MESSAGE", "로그인이 필요합니다.");
+                    throw new TokenAuthenticationException(
+                            "REFRESH_TOKEN_MISSING",
+                            "로그인이 필요합니다.");
                 }
             } else {
-                sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "TOKEN_ERROR", "요청에 필요한 토큰이 없거나 짧습니다.");
+                // 전역 EntryPoint로 위임
+                throw new TokenAuthenticationException(
+                        "TOKEN_ERROR",
+                        "요청에 필요한 토큰이 없거나 짧습니다.");
             }
         } catch (Exception e) {
             log.error("토큰 검증 중 예상치 못한 오류 발생", e);
-            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "AUTHENTICATION_ERROR", "인증 처리 중 오류가 발생했습니다.");
+            throw new TokenAuthenticationException(
+                    "AUTHENTICATION_ERROR",
+                    "인증 처리 중 오류가 발생했습니다.");
         }
     }
 
@@ -175,29 +186,5 @@ public class TokenCheckFilter extends OncePerRequestFilter {
             }
         }
         return null;
-    }
-
-    // 에러 응답 전송
-    private void sendErrorResponse(HttpServletResponse response, HttpStatus status, String errorCode, String message) throws IOException {
-        response.setStatus(status.value());
-        response.setContentType("application/json;charset=UTF-8");
-
-        // CORS 헤더 추가 - Vite 개발 서버 포트로 수정
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Expose-Headers", "Authorization, Set-Cookie");
-
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("success", false);
-        errorResponse.put("errorCode", errorCode);
-        errorResponse.put("message", message);
-        errorResponse.put("timestamp", System.currentTimeMillis());
-
-        String jsonResponse = objectMapper.writeValueAsString(errorResponse);
-        response.getWriter().write(jsonResponse);
-
-        log.info("에러 응답 전송 - Status: {}, ErrorCode: {}, Message: {}", status.value(), errorCode, message);
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import team.shdsesc.stocksimul.auth.exception.TokenAuthenticationException;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -38,15 +39,22 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("success", false);
 
-        String errorCode = (String) request.getAttribute("ERROR_CODE");
-        String message = (String) request.getAttribute("ERROR_MESSAGE");
-
-        if (errorCode != null) {
-            errorResponse.put("errorCode", errorCode);
-            errorResponse.put("message", message != null ? message : "인증이 필요합니다.");
+        // 1) 커스텀 AuthenticationException이면 우선 반영
+        if (authException instanceof TokenAuthenticationException tae) {
+            errorResponse.put("errorCode", tae.getErrorCode());
+            errorResponse.put("message", tae.getErrorMessage());
         } else {
-            errorResponse.put("errorCode", "UNAUTHORIZED");
-            errorResponse.put("message", "인증이 필요합니다.");
+            // 2) request attribute가 있으면 사용
+            String errorCode = (String) request.getAttribute("ERROR_CODE");
+            String message = (String) request.getAttribute("ERROR_MESSAGE");
+            if (errorCode != null) {
+                errorResponse.put("errorCode", errorCode);
+                errorResponse.put("message", message != null ? message : "인증이 필요합니다.");
+            } else {
+                // 3) 기본값
+                errorResponse.put("errorCode", "UNAUTHORIZED");
+                errorResponse.put("message", "인증이 필요합니다.");
+            }
         }
 
         errorResponse.put("timestamp", System.currentTimeMillis());
