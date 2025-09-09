@@ -3,6 +3,7 @@ package team.shdsesc.stocksimul.user;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import team.shdsesc.stocksimul.auth.util.BaseEntity;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -15,42 +16,52 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class UserEntity {
+@Table(name = "Users")
+public class UserEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long usersId;
 
     @Column(nullable = false, unique = true)
-    private String email;
+    private String usersEmail;
 
     @Column(nullable = false)
-    private String password;
+    private String usersPassword;
 
-    private int level;
+    private int usersLevel;
 
     @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "users_ticker_list",
+            joinColumns = @JoinColumn(name = "user_id")
+    )
+    @Column(name = "ticker")
     @Builder.Default
     private List<String> tickerList = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @Builder.Default
+    @CollectionTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id")
+    )
     @Enumerated(EnumType.STRING)
-    private Set<UserRole> roleSet = new HashSet<>();
+    @Builder.Default
+    private Set<UserRole> usersRoles = new HashSet<>();
 
     public static UserDTO toUsersDTO(UserEntity userEntity) {
         return new UserDTO(
-                userEntity.getUserId(),
-                userEntity.getEmail(),
-                userEntity.getPassword(),
-                userEntity.getLevel(),
+                userEntity.getUsersId(),
+                userEntity.getUsersEmail(),
+                userEntity.getUsersPassword(),
+                userEntity.getUsersLevel(),
                 userEntity.getTickerList(),
-                userEntity.getRoleSet().stream()
+                userEntity.getUsersRoles().stream()
                         .map(role -> new SimpleGrantedAuthority(role.toString()))
                         .toList()
         );
     }
 
     public void addMemberRole(UserRole role) {
-        roleSet.add(role);
+        usersRoles.add(role);
     }
 }

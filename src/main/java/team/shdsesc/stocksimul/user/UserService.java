@@ -21,6 +21,7 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisDAO redisDAO;
+
     // 이 곳에서 DB의 UserEntity Entity를 가져와 인코딩 된 시큐리티의 password와 비교 후 검증 (Config에서 검증하므로 건드릴 것 없음)
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -35,9 +36,9 @@ public class UserService implements UserDetailsService {
 
     public ResponseEntity<UserDTO> registerUser(UserRequestDTO request) {
         UserEntity userEntity = UserEntity.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .level(Integer.parseInt(request.getLevel()))
+                .usersEmail(request.getEmail())
+                .usersPassword(passwordEncoder.encode(request.getPassword()))
+                .usersLevel(Integer.parseInt(request.getLevel()))
                 .tickerList(request.getTickerList())
                 .build();
 
@@ -69,7 +70,6 @@ public class UserService implements UserDetailsService {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null or empty");
         }
-
         // 로그아웃 시 Redis에서 RefreshToken 삭제
         redisDAO.deleteValues(username);
     }
