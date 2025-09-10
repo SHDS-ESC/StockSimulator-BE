@@ -50,6 +50,8 @@ public class UserEntity extends BaseEntity {
 
     public static UserDTO toUsersDTO(UserEntity userEntity) {
         return new UserDTO(
+                userEntity.getCreatedAt(),
+                userEntity.getUpdatedAt(),
                 userEntity.getUsersId(),
                 userEntity.getUsersEmail(),
                 userEntity.getUsersPassword(),
