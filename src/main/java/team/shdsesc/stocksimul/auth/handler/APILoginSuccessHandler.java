@@ -30,7 +30,7 @@ public class APILoginSuccessHandler implements AuthenticationSuccessHandler {
         // 토큰생성해서 서블릿으로 응답
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        JwtToken jwtToken = jwtTokenProvider.generateToken(authentication);
+        JwtToken jwtToken = jwtTokenProvider.generateJwtToken(authentication);
         // Access Token 유효기간 1시간
         String accessToken = jwtToken.getAccessToken();
         // Refresh Token 유효기간 1일

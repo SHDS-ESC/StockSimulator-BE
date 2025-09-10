@@ -51,7 +51,7 @@ public class JwtTokenProvider {
 
     // Member 정보를 가지고 AccessToken, RefreshToken을 생성하기
     // 로그인 직후 첫 토큰 발급
-    public JwtToken generateToken(Authentication authentication) {
+    public JwtToken generateJwtToken(Authentication authentication) {
         // 권한 가져오기
         // JWT 토큰의 claims에 포함되어 사용자의 권한 정보를 저장하는데 사용됨
         String authorities = authentication.getAuthorities().stream() // Authentication 객체에서 사용자 권한 목록 가져오기
@@ -111,6 +111,7 @@ public class JwtTokenProvider {
         String accessToken = generateAccessToken(username, authorities, accessTokenExpire);
 
 //        // RefreshToken 생성
+        // 기존 accessToken이 만료되면 새로운 refreshToken 발급하는 경우에 사용, 우리 서버는 만료 시 로그아웃 시키므로 사용하지 않음
 //        Date refreshTokenExpire = new Date(now + REFRESH_TOKEN_EXPIRE_TIME);
 //        String refreshToken = generateRefreshToken(username, refreshTokenExpire);
 //
