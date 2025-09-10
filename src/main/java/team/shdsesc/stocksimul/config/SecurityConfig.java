@@ -48,7 +48,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
-                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/api/user/*").permitAll()
                 .anyRequest().authenticated());
         http.csrf(AbstractHttpConfigurer::disable); // CSRF 토큰 미사용 설정
 
