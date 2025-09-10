@@ -2,6 +2,8 @@ package team.shdsesc.stocksimul.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import team.shdsesc.stocksimul.auth.util.JwtTokenProvider;
 
@@ -28,5 +30,10 @@ public class UserController {
         String token = authHeader.substring(7);
         String username = jwtTokenProvider.getUserNameFromToken(token);
         return userService.logoutUser(username);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(userService.loadUserByUsername(user.getUsername()));
     }
 }

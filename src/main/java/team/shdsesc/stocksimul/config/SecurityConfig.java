@@ -46,10 +46,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler accessDeniedHandler, CustomAuthenticationEntryPoint authenticationEntryPoint) throws Exception {
         log.info("security config...............");
 
+        http.csrf(AbstractHttpConfigurer::disable); // CSRF 비활성화
+
         http.authorizeHttpRequests(auth -> auth
-                // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
-                .requestMatchers("/api/user/*").permitAll()
-                .anyRequest().authenticated());
+                // 회원가입은 모두 허용
+                .requestMatchers("/api/user/register").permitAll()
+                // 그 외 /api/user/** 는 인증 필요
+                .requestMatchers("/api/user/**").authenticated()
+                // 나머지 요청 처리
+                .anyRequest().permitAll()
+        );
+
         http.csrf(AbstractHttpConfigurer::disable); // CSRF 토큰 미사용 설정
 
         // CORS 설정

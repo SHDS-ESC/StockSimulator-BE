@@ -40,9 +40,10 @@ public class TokenCheckFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         // test, api만 인증 토큰 필터 거침
         // 그 외에는 matcher에 적용하지 않은 경우 403
-        if (!path.startsWith("/test") && !path.startsWith("/api/user/logout")) { // /api가 아니면 통과
+        // 🔹 토큰 검증에서 완전히 제외할 경로
+        if (path.startsWith("/auth") || path.startsWith("/api/user/register")) {
             filterChain.doFilter(request, response);
-            return;
+            return; // 여기서 바로 빠져나감 → 토큰 체크 안 함
         }
         try {
             // 1. Access Token 검증
