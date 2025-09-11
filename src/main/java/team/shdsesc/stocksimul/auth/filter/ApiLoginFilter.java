@@ -1,4 +1,4 @@
-package team.shdsesc.stocksimul.security;
+package team.shdsesc.stocksimul.auth.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -18,14 +18,13 @@ import java.util.Map;
 
 @Log4j2
 public class ApiLoginFilter extends AbstractAuthenticationProcessingFilter {
-    protected ApiLoginFilter(String defaultFilterProcessesUrl) {
+    public ApiLoginFilter(String defaultFilterProcessesUrl) {
         super(defaultFilterProcessesUrl);
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
-        log.info("ApiLoginFilter 실행");
-        Map<String, Object> map = new HashMap<>();
+        Map map = new HashMap<>();
         try (Reader reader = new InputStreamReader(request.getInputStream())) {
             ObjectMapper om = new ObjectMapper();
             map = om.readValue(reader, Map.class);
@@ -37,9 +36,7 @@ public class ApiLoginFilter extends AbstractAuthenticationProcessingFilter {
 
         // 인증처리
         UsernamePasswordAuthenticationToken authenticationToken
-                = new UsernamePasswordAuthenticationToken(map.get("client_id"), map.get("client_secret"));
+                = new UsernamePasswordAuthenticationToken(map.get("email"), map.get("password"));
         return getAuthenticationManager().authenticate(authenticationToken);
     }
-
-
 }
