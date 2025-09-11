@@ -25,6 +25,22 @@ public class TokenCheckFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String path = request.getRequestURI();
+        
+        // Swagger 관련 경로는 토큰 체크 제외
+        if (path.startsWith("/swagger-ui") || 
+            path.startsWith("/v3/api-docs") || 
+            path.startsWith("/api-docs") ||
+            path.equals("/swagger-ui.html")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        // 개발 단계에서 News API는 토큰 체크 제외 (필요시 제거)
+        if (path.startsWith("/api/news")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         if (!path.startsWith("/api")) { // /api 주소가 아니면(일반접속이면) 통과
             filterChain.doFilter(request, response);
             return;

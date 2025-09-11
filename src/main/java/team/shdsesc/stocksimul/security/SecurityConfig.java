@@ -34,6 +34,8 @@ public class SecurityConfig {
         log.info("security config...............");
 
         http.authorizeHttpRequests(auth -> auth
+                // Swagger 관련 경로 허용
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/api-docs/**").permitAll()
                 // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
                 .anyRequest().permitAll());
         http.csrf(csrf -> csrf.disable()); // CSRF 토큰 미사용 설정
