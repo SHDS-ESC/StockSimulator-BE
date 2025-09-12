@@ -49,10 +49,9 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable); // CSRF 비활성화
 
         http.authorizeHttpRequests(auth -> auth
-                // Swagger 관련 경로 허용
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/api-docs/**").permitAll()
                 // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
-                .anyRequest().permitAll()
+
 
                 .requestMatchers("/api/user/register").permitAll()
                 // 그 외 /api/user/** 는 인증 필요
