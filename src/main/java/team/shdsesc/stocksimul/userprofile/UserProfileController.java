@@ -3,6 +3,7 @@ package team.shdsesc.stocksimul.userprofile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import team.shdsesc.stocksimul.redis.dao.RedisDAO;
 
 import java.util.List;
 
@@ -19,7 +20,12 @@ public class UserProfileController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<UserProfileEntity> createTimeLine(@RequestBody UserProfileDTO userProfileDTO) {
-        return userProfileService.createUserProfile(userProfileDTO);
+    public ResponseEntity<UserProfileEntity> createTimeLine(@RequestBody CreateUserProfileDTO createUserProfileDTO) {
+        return userProfileService.createUserProfile(createUserProfileDTO);
+    }
+
+    @GetMapping("/profiles/{email}")
+    public ResponseEntity<List<UserProfileDTO>> getUserProfileList(@PathVariable String email) {
+        return userProfileService.getUserProfileList(email);
     }
 }

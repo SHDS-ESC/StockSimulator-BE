@@ -32,11 +32,11 @@ public class UserProfileEntity extends BaseEntity {
     private String nickname;
 
 
-    public static UserProfileEntity toUserProfileEntity(UserProfileDTO userProfileDTO, UserEntity userEntity, TimeLineEntity timeLineEntity) {
+    public static UserProfileEntity toUserProfileEntity(CreateUserProfileDTO createUserProfileDTO, UserEntity userEntity, TimeLineEntity timeLineEntity) {
         return UserProfileEntity.builder()
                 .user(userEntity)
                 .timeLine(timeLineEntity)
-                .nickname(userProfileDTO.getNickname())
+                .nickname(createUserProfileDTO.getNickname())
                 .cashBalance(timeLineEntity.getSeedMoney())
                 .processDate(LocalDateTime.now())
                 .build();
