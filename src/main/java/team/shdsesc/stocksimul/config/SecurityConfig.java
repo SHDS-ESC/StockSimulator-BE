@@ -49,7 +49,10 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable); // CSRF 비활성화
 
         http.authorizeHttpRequests(auth -> auth
-                // 회원가입은 모두 허용
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/api-docs/**").permitAll()
+                // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
+
+
                 .requestMatchers("/api/user/register").permitAll()
                 // 그 외 /api/user/** 는 인증 필요
                 .requestMatchers("/api/user/**").authenticated()
