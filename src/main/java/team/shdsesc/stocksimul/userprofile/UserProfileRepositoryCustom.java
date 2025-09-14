@@ -1,7 +1,9 @@
 package team.shdsesc.stocksimul.userprofile;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+import java.util.Optional;
 
-public interface UserProfileRepositoryCustom extends JpaRepository<UserProfileEntity, Long> {
-
+public interface UserProfileRepositoryCustom {
+    Optional<List<UserProfileEntity>> findUserByUserEmail(String email);
+    void updateCurrentProfileState(Long id, String email);
 }

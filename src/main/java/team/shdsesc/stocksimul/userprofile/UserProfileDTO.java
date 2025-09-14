@@ -15,18 +15,18 @@ public class UserProfileDTO {
     private Long totalAssets;
     private Long cashBalance;
     private String nickname ="";
-    private Boolean state;
+    private String name ="";
+    private Integer state;
 
-    public UserProfileDTO toUserProfileEntity(UserProfileEntity entity, String onUserName) {
-        this.state = this.nickname.equals(onUserName);
-
+    public UserProfileDTO toUserProfileEntity(UserProfileEntity entity) {
         return UserProfileDTO.builder()
                 .id(entity.getUserProfileId())
                 .totalInvested(entity.getTimeLine().getSeedMoney())
                 .totalAssets(entity.getTimeLine().getSeedMoney() - entity.getCashBalance())
                 .cashBalance(entity.getCashBalance())
                 .nickname(entity.getNickname())
-                .state(this.state)
+                .name(entity.getTimeLine().getName())
+                .state(entity.getState())
                 .build();
     }
 }
