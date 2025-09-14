@@ -3,7 +3,6 @@ package team.shdsesc.stocksimul.userprofile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import team.shdsesc.stocksimul.redis.dao.RedisDAO;
 
 import java.util.List;
 
@@ -16,16 +15,31 @@ public class UserProfileController {
 
     @GetMapping("/timelines")
     public ResponseEntity<List<TimeLineEntity>> getTimeLineList() {
-        return userProfileService.getTimeLineList();
-    }
-
-    @PostMapping("/create")
-    public ResponseEntity<UserProfileEntity> createTimeLine(@RequestBody CreateUserProfileDTO createUserProfileDTO) {
-        return userProfileService.createUserProfile(createUserProfileDTO);
+        return ResponseEntity
+                .ok()
+                .body(userProfileService.getTimeLineList());
     }
 
     @GetMapping("/profiles/{email}")
     public ResponseEntity<List<UserProfileDTO>> getUserProfileList(@PathVariable String email) {
-        return userProfileService.getUserProfileList(email);
+        return ResponseEntity
+                .ok()
+                .body(userProfileService.getUserProfileList(email));
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<UserProfileEntity> createTimeLine(@RequestBody CreateUserProfileDTO createUserProfileDTO) {
+        return ResponseEntity
+                .ok()
+                .body(userProfileService.createUserProfile(createUserProfileDTO));
+    }
+
+    @PostMapping("/select")
+    public ResponseEntity<?> selectUserProfile(@RequestBody UpdateUserProfileDTO updateUserProfileDTO) {
+        userProfileService.updateUserProfile(updateUserProfileDTO);
+        return ResponseEntity
+                .ok()
+                .build();
     }
 }
+
