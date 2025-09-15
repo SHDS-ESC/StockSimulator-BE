@@ -10,7 +10,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,8 +20,6 @@ import team.shdsesc.stocksimul.auth.util.JwtToken;
 import team.shdsesc.stocksimul.auth.util.JwtTokenProvider;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Log4j2
 public class TokenCheckFilter extends OncePerRequestFilter {
@@ -37,16 +34,20 @@ public class TokenCheckFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+                // Swagger 관련 경로는 토큰 체크 제외
+        String requestURI = request.getRequestURI();
+        if (requestURI.startsWith("/swagger-ui") ||
+            requestURI.startsWith("/v3/api-docs") ||
+            requestURI.startsWith("/api-docs")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String path = request.getRequestURI();
         // test, api만 인증 토큰 필터 거침
         // 그 외에는 matcher에 적용하지 않은 경우 403
         // 🔹 토큰 검증에서 완전히 제외할 경로
-        log.info("path: " + path);
-        if (path.startsWith("/auth") || path.startsWith("/api/user/register")
-                || path.startsWith("/dev")
-                // favicon은 열어둬야 하나 말아야 하나..
-                || path.startsWith("/favicon.ico")
-                ) {
+        if (path.startsWith("/auth") || path.startsWith("/api/user/register")) {
             filterChain.doFilter(request, response);
             return; // 여기서 바로 빠져나감 → 토큰 체크 안 함
         }
