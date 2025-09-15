@@ -19,16 +19,4 @@ public class UserProfileDTO {
     @Builder.Default
     private String name ="";
     private Integer state;
-
-    public UserProfileDTO toUserProfileEntity(UserProfileEntity entity) {
-        return UserProfileDTO.builder()
-                .id(entity.getUserProfileId())
-                .totalInvested(entity.getTimeLine().getSeedMoney())
-                .totalAssets(entity.getTimeLine().getSeedMoney() - entity.getCashBalance())
-                .cashBalance(entity.getCashBalance())
-                .nickname(entity.getNickname())
-                .name(entity.getTimeLine().getName())
-                .state(entity.getState())
-                .build();
-    }
 }

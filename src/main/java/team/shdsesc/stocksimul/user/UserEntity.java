@@ -2,7 +2,6 @@ package team.shdsesc.stocksimul.user;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import team.shdsesc.stocksimul.auth.util.BaseEntity;
 
 import java.util.ArrayList;
@@ -48,20 +47,8 @@ public class UserEntity extends BaseEntity {
     @Builder.Default
     private Set<UserRole> usersRoles = new HashSet<>();
 
-    public static UserDTO toUsersDTO(UserEntity userEntity) {
-        return new UserDTO(
-                userEntity.getCreatedAt(),
-                userEntity.getUpdatedAt(),
-                userEntity.getUsersId(),
-                userEntity.getUsersEmail(),
-                userEntity.getUsersPassword(),
-                userEntity.getUsersLevel(),
-                userEntity.getTickerList(),
-                userEntity.getUsersRoles().stream()
-                        .map(role -> new SimpleGrantedAuthority(role.toString()))
-                        .toList()
-        );
-    }
+    @Column(name = "last_profile_id")
+    private Long lastProfileId;
 
     public void addMemberRole(UserRole role) {
         usersRoles.add(role);
