@@ -10,7 +10,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,8 +20,6 @@ import team.shdsesc.stocksimul.auth.util.JwtToken;
 import team.shdsesc.stocksimul.auth.util.JwtTokenProvider;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Log4j2
 public class TokenCheckFilter extends OncePerRequestFilter {
