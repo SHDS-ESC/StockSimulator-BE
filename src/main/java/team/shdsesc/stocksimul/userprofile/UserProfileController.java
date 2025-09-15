@@ -27,8 +27,15 @@ public class UserProfileController {
                 .body(userProfileService.getUserProfileList(email));
     }
 
+    @GetMapping("/profile/{pid}")
+    public ResponseEntity<UserProfileDTO> getCurrentUserProfile(@PathVariable Long pid) {
+        return ResponseEntity
+                .ok()
+                .body(userProfileService.getCurrentUserProfile(pid));
+    }
+
     @PostMapping("/create")
-    public ResponseEntity<UserProfileEntity> createTimeLine(@RequestBody CreateUserProfileDTO createUserProfileDTO) {
+    public ResponseEntity<UserProfileDTO> createTimeLine(@RequestBody CreateUserProfileDTO createUserProfileDTO) {
         return ResponseEntity
                 .ok()
                 .body(userProfileService.createUserProfile(createUserProfileDTO));
