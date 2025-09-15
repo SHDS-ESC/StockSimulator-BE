@@ -21,9 +21,6 @@ public interface NewsService {
                 .title(newsDTO.getTitle())
                 .url(newsDTO.getUrl())
                 .bannerImage(newsDTO.getBannerImage())
-                .summary(newsDTO.getSummary())
-                .topicPrimary(newsDTO.getTopicPrimary())
-                .topicSecondary(newsDTO.getTopicSecondary())
                 .build();
         entityMap.put("news", news);
         return entityMap;
@@ -38,9 +35,6 @@ public interface NewsService {
                 .title(newsEntity.getTitle())
                 .url(newsEntity.getUrl())
                 .bannerImage(newsEntity.getBannerImage())
-                .summary(newsEntity.getSummary())
-                .topicPrimary(newsEntity.getTopicPrimary())
-                .topicSecondary(newsEntity.getTopicSecondary())
                 .build();
         return newsDTO;
 

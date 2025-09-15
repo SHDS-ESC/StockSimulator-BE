@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "alphavantage_news")
+@Table(name = "naver_news")
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,10 +32,4 @@ public class NewsEntity {
     private String bannerImage;
 
     private String summary;
-
-    @Column(name = "topic_primary")
-    private String topicPrimary;
-
-    @Column(name = "topic_secondary")
-    private String topicSecondary;
 }

@@ -19,8 +19,6 @@ public class NewsDTO {
     private String url;
     private String bannerImage;
     private String summary;
-    private String topicPrimary;
-    private String topicSecondary;
 
 
 }
