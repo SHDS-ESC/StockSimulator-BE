@@ -30,16 +30,4 @@ public class UserProfileEntity extends BaseEntity {
     private Long cashBalance;
     private LocalDateTime processDate;
     private String nickname;
-    private Integer state;
-
-    public static UserProfileEntity toUserProfileEntity(CreateUserProfileDTO createUserProfileDTO, UserEntity userEntity, TimeLineEntity timeLineEntity) {
-        return UserProfileEntity.builder()
-                .user(userEntity)
-                .timeLine(timeLineEntity)
-                .nickname(createUserProfileDTO.getNickname())
-                .cashBalance(timeLineEntity.getSeedMoney())
-                .processDate(LocalDateTime.now())
-                .state(1)
-                .build();
-    }
 }
