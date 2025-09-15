@@ -49,8 +49,16 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable); // CSRF 비활성화
 
         http.authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/api-docs/**").permitAll()
-                // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
+                .requestMatchers(
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/api-docs/**",
+                        "/swagger-resources/**",
+                        "/webjars/**",
+                        "/configuration/ui",
+                        "/configuration/security"
+                ).permitAll()                // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
 
 
                 .requestMatchers("/api/user/register").permitAll()
@@ -59,8 +67,6 @@ public class SecurityConfig {
                 // 나머지 요청 처리
                 .anyRequest().permitAll()
         );
-
-        http.csrf(AbstractHttpConfigurer::disable); // CSRF 토큰 미사용 설정
 
         // CORS 설정
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
@@ -96,12 +102,12 @@ public class SecurityConfig {
         apiLoginFilter.setAuthenticationSuccessHandler(new APILoginSuccessHandler(jwtTokenProvider));
         // 실패 시
         apiLoginFilter.setAuthenticationFailureHandler(new APILoginFailureHandler());
+        // 토큰체크필터
+        TokenCheckFilter tokenCheckFilter = new TokenCheckFilter(jwtTokenProvider);
 
         // 필터동작위치
         http.addFilterBefore(apiLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // 토큰체크필터
-        TokenCheckFilter tokenCheckFilter = new TokenCheckFilter(jwtTokenProvider);
         http.addFilterBefore(tokenCheckFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
