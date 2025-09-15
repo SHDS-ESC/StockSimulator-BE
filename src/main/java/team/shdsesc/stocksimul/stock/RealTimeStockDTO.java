@@ -1,20 +1,22 @@
 package team.shdsesc.stocksimul.stock;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.sql.Time;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class RealTimeStockDTO {
-
-
-    private String ticker;
-    private Double close;
-    private String time;
-
+    private String symbol;
+    private String name;
+    private String price;
+    private String change;
+    private String changePercent;
+    private String volume;
+    private String logo;
 }

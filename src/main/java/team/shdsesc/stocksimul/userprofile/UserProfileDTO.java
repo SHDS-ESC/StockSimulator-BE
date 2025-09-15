@@ -14,7 +14,9 @@ public class UserProfileDTO {
     private Long totalInvested;
     private Long totalAssets;
     private Long cashBalance;
+    @Builder.Default
     private String nickname ="";
+    @Builder.Default
     private String name ="";
     private Integer state;
 

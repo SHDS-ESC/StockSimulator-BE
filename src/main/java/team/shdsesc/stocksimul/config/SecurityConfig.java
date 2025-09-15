@@ -46,21 +46,20 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler accessDeniedHandler, CustomAuthenticationEntryPoint authenticationEntryPoint) throws Exception {
         log.info("security config...............");
 
-        http.csrf(AbstractHttpConfigurer::disable); // CSRF 비활성화
-
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/api-docs/**").permitAll()
-                // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
-
-
-                .requestMatchers("/api/user/register").permitAll()
-                // 그 외 /api/user/** 는 인증 필요
-                .requestMatchers("/api/user/**").authenticated()
-                // 나머지 요청 처리
-                .anyRequest().permitAll()
+                        .requestMatchers("/api/user/register").permitAll()
+                        .requestMatchers("/api/db/**").permitAll()
+                        .requestMatchers("/api/market/**").permitAll()
+                        .requestMatchers("/api/news/**").permitAll()
+                        .requestMatchers("/api/watchlist/**").permitAll()
+                        // 그 외 /api/user/** 는 인증 필요
+                        .requestMatchers("/api/user/**").authenticated()
+                        // 나머지 요청 처리
+                        .anyRequest().permitAll()
         );
-
-        http.csrf(AbstractHttpConfigurer::disable); // CSRF 토큰 미사용 설정
+        
+        http.csrf(AbstractHttpConfigurer::disable); // CSRF 비활성화
 
         // CORS 설정
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
@@ -100,7 +99,7 @@ public class SecurityConfig {
         // 필터동작위치
         http.addFilterBefore(apiLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // 토큰체크필터
+        // 토큰체크필터 - 활성화
         TokenCheckFilter tokenCheckFilter = new TokenCheckFilter(jwtTokenProvider);
         http.addFilterBefore(tokenCheckFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -3,13 +3,12 @@ package team.shdsesc.stocksimul.news;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "alphavantage_news")
+@Table(name = "news")
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
