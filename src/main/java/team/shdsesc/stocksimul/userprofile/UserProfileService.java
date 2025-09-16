@@ -36,7 +36,7 @@ public class UserProfileService {
         TimeLineEntity timeLine = timeLineRepository.findById(createUserProfileDTO.getTimelineId()).orElseThrow(() -> new RuntimeException("Timeline not found"));
         UserProfileEntity userProfileEntity = toUserProfileEntity(createUserProfileDTO, user, timeLine);
         userProfileRepository.save(userProfileEntity);
-        userRepository.updateCurrentProfileUser(user.getUsersId(), userProfileEntity.getUserProfileId());
+        userRepository.updateCurrentProfileUser(user.getUsersId(), userProfileEntity.getUsersProfileId());
         //userProfileRepository.updateCurrentProfileState(userProfileEntity.getUserProfileId(), user.getUsersEmail());
         return toUserProfileDTO(userProfileEntity);
     }
@@ -65,7 +65,7 @@ public class UserProfileService {
 
     public UserProfileDTO toUserProfileDTO(UserProfileEntity entity) {
         return UserProfileDTO.builder()
-                .id(entity.getUserProfileId())
+                .id(entity.getUsersProfileId())
                 .totalInvested(entity.getTimeLine().getSeedMoney())
                 .totalAssets(entity.getTimeLine().getSeedMoney() - entity.getCashBalance())
                 .cashBalance(entity.getCashBalance())

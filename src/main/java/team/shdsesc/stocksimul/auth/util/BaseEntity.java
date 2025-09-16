@@ -17,8 +17,8 @@ public abstract class BaseEntity {
 
     @CreatedDate
     @Column(updatable = false) // insert 이후 수정 불가
-    private LocalDateTime createdAt;
+    private LocalDateTime regDate;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private LocalDateTime modDate;
 }

@@ -3,6 +3,7 @@ package team.shdsesc.stocksimul.user;
 import jakarta.persistence.*;
 import lombok.*;
 import team.shdsesc.stocksimul.auth.util.BaseEntity;
+import team.shdsesc.stocksimul.stock.StockEntity;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,25 +23,16 @@ public class UserEntity extends BaseEntity {
     private Long usersId;
 
     @Column(nullable = false, unique = true)
-    private String usersEmail;
+    private String email;
 
     @Column(nullable = false)
-    private String usersPassword;
+    private String password;
 
-    private int usersLevel;
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(
-            name = "users_ticker_list",
-            joinColumns = @JoinColumn(name = "user_id")
-    )
-    @Column(name = "ticker")
-    @Builder.Default
-    private List<String> tickerList = new ArrayList<>();
+    private int level;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
-            name = "users_roles",
+            name = "roles",
             joinColumns = @JoinColumn(name = "user_id")
     )
     @Enumerated(EnumType.STRING)
