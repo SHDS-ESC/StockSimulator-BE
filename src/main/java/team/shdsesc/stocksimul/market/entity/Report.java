@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 import java.time.LocalDateTime;
 
@@ -38,7 +39,7 @@ public class Report {
     @Column(name = "atr")
     private Double atr;
 
-    @Column(name = "stochastic")
+    @Transient
     private Double stochastic;
 
     @Column(name = "obv")

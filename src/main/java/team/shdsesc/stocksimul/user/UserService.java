@@ -22,7 +22,7 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
-    private final UsersLikesRepository usersLikesRepository;
+//    private final UsersLikesRepository usersLikesRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisDAO redisDAO;
 

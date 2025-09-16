@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import team.shdsesc.stocksimul.market.entity.Watchlist;
 import team.shdsesc.stocksimul.market.entity.WatchlistId;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface WatchlistRepository extends JpaRepository<Watchlist, WatchlistId> {
@@ -19,10 +18,9 @@ public interface WatchlistRepository extends JpaRepository<Watchlist, WatchlistI
     @Query("delete from Watchlist w where w.id.userId = :userId and w.id.ticker = :ticker")
     void deleteByUserAndTicker(@Param("userId") String userId, @Param("ticker") String ticker);
 
-    default Watchlist create(String userId, String ticker, LocalDateTime createdAt) {
+    default Watchlist create(String userId, String ticker) {
         Watchlist w = new Watchlist();
         w.setId(new WatchlistId(userId, ticker));
-        w.setCreatedAt(createdAt);
         return save(w);
     }
 }
