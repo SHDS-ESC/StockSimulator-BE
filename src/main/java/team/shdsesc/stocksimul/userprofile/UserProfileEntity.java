@@ -13,13 +13,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Table(name = "UserProfile")
+@Table(name = "usersprofile")
 public class UserProfileEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userProfileId;
+    private Long usersProfileId;
 
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "users_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity user;
 

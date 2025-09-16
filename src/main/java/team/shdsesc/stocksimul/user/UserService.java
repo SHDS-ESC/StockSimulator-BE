@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import team.shdsesc.stocksimul.redis.dao.RedisDAO;
 import team.shdsesc.stocksimul.userprofile.UserProfileRepository;
+
 import java.util.Map;
 import java.util.Optional;
 
@@ -21,6 +22,7 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final UsersLikesRepository usersLikesRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisDAO redisDAO;
 
@@ -38,14 +40,13 @@ public class UserService implements UserDetailsService {
 
     public UserDTO toUsersDTO(UserEntity userEntity) {
         return new UserDTO(
-                userEntity.getCreatedAt(),
-                userEntity.getUpdatedAt(),
+                userEntity.getRegDate(),
+                userEntity.getModDate(),
                 userEntity.getUsersId(),
-                userEntity.getUsersEmail(),
+                userEntity.getEmail(),
                 userEntity.getLastProfileId(),
-                userEntity.getUsersPassword(),
-                userEntity.getUsersLevel(),
-                userEntity.getTickerList(),
+                userEntity.getPassword(),
+                userEntity.getLevel(),
                 userEntity.getUsersRoles().stream()
                         .map(role -> new SimpleGrantedAuthority(role.toString()))
                         .toList()
@@ -54,10 +55,9 @@ public class UserService implements UserDetailsService {
 
     public ResponseEntity<UserDTO> registerUser(UserRequestDTO request) {
         UserEntity userEntity = UserEntity.builder()
-                .usersEmail(request.getEmail())
-                .usersPassword(passwordEncoder.encode(request.getPassword()))
-                .usersLevel(Integer.parseInt(request.getLevel()))
-                .tickerList(request.getTickerList())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .level(Integer.parseInt(request.getLevel()))
                 .build();
 
         userEntity.addMemberRole(UserRole.USER);
