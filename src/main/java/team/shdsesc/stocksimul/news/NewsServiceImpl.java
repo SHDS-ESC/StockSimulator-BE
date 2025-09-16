@@ -17,7 +17,7 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     public PageResultDTO<NewsDTO,NewsEntity> getList(PageRequestDTO requestDTO){
-        Pageable pageable = requestDTO.getPageable(Sort.by("id").descending());
+        Pageable pageable = requestDTO.getPageable(Sort.by("newsId").descending());
 
         Page<NewsEntity> result = newsRepository.findAll(pageable);
 
