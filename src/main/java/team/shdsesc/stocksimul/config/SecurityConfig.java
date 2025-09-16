@@ -46,8 +46,24 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler accessDeniedHandler, CustomAuthenticationEntryPoint authenticationEntryPoint) throws Exception {
         log.info("security config...............");
 
+        http.csrf(AbstractHttpConfigurer::disable); // CSRF 비활성화
+
         http.authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/api-docs/**").permitAll()
+                .requestMatchers(
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/api-docs/**",
+                        "/swagger-resources/**",
+                        "/webjars/**",
+                        "/configuration/ui",
+                        "/configuration/security"
+                ).permitAll()                // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
+                .requestMatchers("/api/user/register").permitAll()
+                // 그 외 /api/user/** 는 인증 필요
+                .requestMatchers("/api/user/**").authenticated()
+                // 나머지 요청 처리
+                .anyRequest().permitAll()
                         .requestMatchers("/api/user/register").permitAll()
                         .requestMatchers("/api/db/**").permitAll()
                         .requestMatchers("/api/market/**").permitAll()
@@ -58,8 +74,6 @@ public class SecurityConfig {
                         // 나머지 요청 처리
                         .anyRequest().permitAll()
         );
-        
-        http.csrf(AbstractHttpConfigurer::disable); // CSRF 비활성화
 
         // CORS 설정
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
@@ -95,12 +109,12 @@ public class SecurityConfig {
         apiLoginFilter.setAuthenticationSuccessHandler(new APILoginSuccessHandler(jwtTokenProvider));
         // 실패 시
         apiLoginFilter.setAuthenticationFailureHandler(new APILoginFailureHandler());
+        // 토큰체크필터
+        TokenCheckFilter tokenCheckFilter = new TokenCheckFilter(jwtTokenProvider);
 
         // 필터동작위치
         http.addFilterBefore(apiLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // 토큰체크필터 - 활성화
-        TokenCheckFilter tokenCheckFilter = new TokenCheckFilter(jwtTokenProvider);
         http.addFilterBefore(tokenCheckFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

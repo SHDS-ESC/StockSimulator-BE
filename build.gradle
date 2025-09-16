@@ -52,6 +52,9 @@ dependencies {
 
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // http request
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 }
 test {
     useJUnitPlatform()  // 이 줄이 있는지 확인
