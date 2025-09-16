@@ -10,7 +10,7 @@ import team.shdsesc.stocksimul.market.entity.Report;
 import team.shdsesc.stocksimul.market.entity.Stock;
 import team.shdsesc.stocksimul.market.repository.ReportRepository;
 import team.shdsesc.stocksimul.market.repository.StockInfoRepository;
-import team.shdsesc.stocksimul.market.repository.StockRepository;
+import team.shdsesc.stocksimul.market.repository.MarketStockRepository;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -23,11 +23,11 @@ import java.util.stream.Collectors;
 @Service
 public class DbMarketService {
 
-    private final StockRepository stockRepository;
+    private final MarketStockRepository stockRepository;
     private final ReportRepository reportRepository;
     private final StockInfoRepository stockInfoRepository;
 
-    public DbMarketService(StockRepository stockRepository, ReportRepository reportRepository, StockInfoRepository stockInfoRepository) {
+    public DbMarketService(MarketStockRepository stockRepository, ReportRepository reportRepository, StockInfoRepository stockInfoRepository) {
         this.stockRepository = stockRepository;
         this.reportRepository = reportRepository;
         this.stockInfoRepository = stockInfoRepository;

@@ -8,7 +8,7 @@ import team.shdsesc.stocksimul.market.entity.Stock;
 import java.util.List;
 import java.util.Optional;
 
-public interface StockRepository extends JpaRepository<Stock, Long> {
+public interface MarketStockRepository extends JpaRepository<Stock, Long> {
 
     @Query("select s from Stock s where s.ticker = :ticker")
     Optional<Stock> findByTicker(@Param("ticker") String ticker);

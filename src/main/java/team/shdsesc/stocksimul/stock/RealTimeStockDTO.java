@@ -19,4 +19,9 @@ public class RealTimeStockDTO {
     private String changePercent;
     private String volume;
     private String logo;
+    
+    // 실시간 데이터용 필드들
+    private String ticker;
+    private Double close;
+    private String time;
 }
