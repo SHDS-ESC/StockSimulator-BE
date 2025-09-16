@@ -17,7 +17,7 @@ public class UserProfileRepositoryCustomImpl implements UserProfileRepositoryCus
         List<UserProfileEntity> result = queryFactory
                 .selectFrom(userProfile)
                 .leftJoin(userProfile.user).fetchJoin()
-                .where(userProfile.user.usersEmail.eq(email))
+                .where(userProfile.user.email.eq(email))
                 .fetch();
 
         return Optional.ofNullable(result);
