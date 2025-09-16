@@ -45,3 +45,7 @@ replay_pid*
 
 # Properties
 src/main/resources/application.properties
+
+# QueryDSL generated sources
+bin/generated-sources/
+build/generated/

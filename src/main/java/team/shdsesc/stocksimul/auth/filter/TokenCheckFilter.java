@@ -49,6 +49,7 @@ public class TokenCheckFilter extends OncePerRequestFilter {
         // 🔹 토큰 검증에서 완전히 제외할 경로
         if (path.startsWith("/auth") || 
             path.startsWith("/api/user/register") ||
+            path.startsWith("/user/register") ||
             path.startsWith("/api/db/") ||
             path.startsWith("/api/api/") ||
             path.startsWith("/api/market/") ||
