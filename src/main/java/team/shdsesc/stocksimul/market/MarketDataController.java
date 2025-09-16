@@ -17,7 +17,7 @@ import team.shdsesc.stocksimul.redis.dao.StockRedisDAO;
 import team.shdsesc.stocksimul.stock.RealTimeStockDTO;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,8 +33,6 @@ public class MarketDataController {
     private final StockRedisDAO stockRedisDAO;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
-    // 대량 갱신을 위한 스레드 풀
-    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
     
     // 스케줄러용 변수
     private final List<String> allTickers = new ArrayList<>();
@@ -42,8 +40,6 @@ public class MarketDataController {
     private boolean schedulerEnabled = false;
 
     // 동작 토글 및 파라미터 (application.properties 미변경 시에도 기본값으로 작동)
-    @Value("${market.bulk.enabled:true}")
-    private boolean bulkEnabled;
 
     @Value("${market.scheduler.enabled:false}")
     private boolean schedulerEnabledDefault;
@@ -169,157 +165,7 @@ public class MarketDataController {
         }
     }
 
-    // 대량 티커 갱신 테스트를 위한 엔드포인트
-    @PostMapping("/bulk-update-test")
-    public ResponseEntity<Map<String, Object>> bulkUpdateTest(
-            @RequestParam(value = "tickerCount", defaultValue = "700") int tickerCount,
-            @RequestParam(value = "durationMinutes", defaultValue = "15") int durationMinutes,
-            @RequestParam(value = "requestsPerMinute", defaultValue = "60") int requestsPerMinute) {
-        
-        Map<String, Object> result = new HashMap<>();
-
-        if (!bulkEnabled) {
-            result.put("success", false);
-            result.put("message", "bulk-update 비활성화 상태입니다 (market.bulk.enabled=false)");
-            return ResponseEntity.status(404).body(result);
-        }
-        
-        try {
-            // 사용 가능한 티커 목록 가져오기
-            List<String> availableTickers = dbMarketService.getTickers().getTickers();
-            if (availableTickers.isEmpty()) {
-                result.put("success", false);
-                result.put("message", "사용 가능한 티커가 없습니다.");
-                return ResponseEntity.badRequest().body(result);
-            }
-            
-            // 요청할 티커 선택 (중복 제거)
-            List<String> selectedTickers = availableTickers.stream()
-                    .limit(Math.min(tickerCount, availableTickers.size()))
-                    .collect(Collectors.toList());
-            
-            // 실제 요청할 티커 수
-            int actualTickerCount = selectedTickers.size();
-            
-            // 요청 간격 계산 (밀리초)
-            long requestInterval = 60000L / requestsPerMinute; // 1분 = 60000ms
-            
-            // 총 요청 수 계산
-            int totalRequests = (durationMinutes * 60 * 1000) / (int) requestInterval;
-            
-            result.put("success", true);
-            result.put("message", "대량 갱신 테스트 시작");
-            result.put("selectedTickers", actualTickerCount);
-            result.put("totalRequests", totalRequests);
-            result.put("requestInterval", requestInterval + "ms");
-            result.put("durationMinutes", durationMinutes);
-            result.put("requestsPerMinute", requestsPerMinute);
-            
-            // 비동기로 대량 갱신 실행
-            CompletableFuture.runAsync(() -> {
-                executeBulkUpdate(selectedTickers, requestInterval, totalRequests);
-            }, executorService);
-            
-            return ResponseEntity.ok(result);
-            
-        } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "대량 갱신 테스트 시작 실패: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(result);
-        }
-    }
     
-    // 실제 대량 갱신 실행
-    private void executeBulkUpdate(List<String> tickers, long requestInterval, int totalRequests) {
-        int successCount = 0;
-        int errorCount = 0;
-        long startTime = System.currentTimeMillis();
-        
-        if (verboseLog) {
-            log.info("=== 대량 티커 갱신 시작 ===");
-            log.info("티커 수: {}", tickers.size());
-            log.info("총 요청 수: {}", totalRequests);
-            log.info("요청 간격: {}ms", requestInterval);
-        }
-        
-        for (int i = 0; i < totalRequests; i++) {
-            try {
-                // 순환적으로 티커 선택
-                String ticker = tickers.get(i % tickers.size());
-                
-                // API 호출
-                restClient
-                        .get()
-                        .uri((UriBuilder b) -> b
-                                .path("/quote")
-                                .queryParam("symbol", ticker)
-                                .queryParam("token", finnhubApiKey)
-                                .build())
-                        .retrieve()
-                        .body(String.class);
-                
-                successCount++;
-                
-                if (verboseLog && i % 10 == 0) {
-                    log.info("진행: {}/{} (성공: {}, 실패: {})", (i + 1), totalRequests, successCount, errorCount);
-                }
-                
-            } catch (Exception e) {
-                errorCount++;
-                log.warn("요청 {} 실패: {}", (i + 1), e.getMessage());
-            }
-            
-            // 요청 간격 대기
-            try {
-                Thread.sleep(requestInterval);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-        }
-        
-        long endTime = System.currentTimeMillis();
-        long totalTime = endTime - startTime;
-        
-        if (verboseLog) {
-            log.info("=== 대량 티커 갱신 완료 ===");
-            log.info("총 소요 시간: {}초", (totalTime / 1000));
-            log.info("성공: {}, 실패: {}", successCount, errorCount);
-            log.info("평균 응답 시간: {}ms", (totalTime / Math.max(1, totalRequests)));
-        }
-    }
-    
-    // 대량 갱신 상태 조회
-    @GetMapping("/bulk-update-status")
-    public ResponseEntity<Map<String, Object>> getBulkUpdateStatus() {
-        Map<String, Object> status = new HashMap<>();
-        status.put("executorActive", !executorService.isShutdown());
-        status.put("executorShutdown", executorService.isShutdown());
-        status.put("executorTerminated", executorService.isTerminated());
-        return ResponseEntity.ok(status);
-    }
-    
-    // 대량 갱신 중지
-    @PostMapping("/bulk-update-stop")
-    public ResponseEntity<Map<String, Object>> stopBulkUpdate() {
-        Map<String, Object> result = new HashMap<>();
-        
-        try {
-            executorService.shutdown();
-            boolean terminated = executorService.awaitTermination(5, TimeUnit.SECONDS);
-            
-            result.put("success", true);
-            result.put("message", terminated ? "대량 갱신이 정상적으로 중지되었습니다." : "대량 갱신 중지 중...");
-            result.put("terminated", terminated);
-            
-            return ResponseEntity.ok(result);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            result.put("success", false);
-            result.put("message", "대량 갱신 중지 중 오류 발생: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(result);
-        }
-    }
 
     // 티커 목록 조회
     @GetMapping("/tickers")
@@ -403,7 +249,6 @@ public class MarketDataController {
 
     // Redis에 주식 데이터 저장 (초기화용)
     @PostMapping("/redis/init")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> initRedisStocks() {
         try {
             TickersResponse response = dbMarketService.getTickers();
@@ -431,14 +276,12 @@ public class MarketDataController {
 
     // 스케줄러 시작/중지
     @PostMapping("/redis/scheduler/start")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> startScheduler() {
         schedulerEnabled = true;
         return ResponseEntity.ok("스케줄러 시작됨");
     }
 
     @PostMapping("/redis/scheduler/stop")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> stopScheduler() {
         schedulerEnabled = false;
         return ResponseEntity.ok("스케줄러 중지됨");
@@ -446,7 +289,6 @@ public class MarketDataController {
 
     // 스케줄러 상태 조회
     @GetMapping("/redis/scheduler/status")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getSchedulerStatus() {
         Map<String, Object> status = new HashMap<>();
         status.put("enabled", schedulerEnabled);
@@ -457,7 +299,6 @@ public class MarketDataController {
 
     // 스케줄러 수동 실행 (테스트용)
     @PostMapping("/redis/scheduler/run-now")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> runSchedulerNow() {
         if (verboseLog) {
             log.info("수동 스케줄러 실행 요청됨 (배치 방식)");
@@ -468,7 +309,6 @@ public class MarketDataController {
 
     // 단일 심볼 강제 갱신 (라이브 값과 동기화용)
     @PostMapping("/redis/stock/{symbol}/refresh")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> refreshOne(@PathVariable String symbol) {
         try {
             String quoteJson = restClient
