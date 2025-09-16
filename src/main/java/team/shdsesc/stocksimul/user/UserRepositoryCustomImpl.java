@@ -15,7 +15,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         UserEntity result = queryFactory
                 .selectFrom(users)
                 .leftJoin(users.usersRoles).fetchJoin()
-                .where(users.usersEmail.eq(email))
+                .where(users.email.eq(email))
                 .fetchOne();
 
         return Optional.ofNullable(result);
