@@ -9,7 +9,6 @@ import team.shdsesc.stocksimul.market.dto.TickersResponse;
 import team.shdsesc.stocksimul.market.entity.Report;
 import team.shdsesc.stocksimul.market.entity.Stock;
 import team.shdsesc.stocksimul.market.repository.ReportRepository;
-import team.shdsesc.stocksimul.market.repository.StockInfoRepository;
 import team.shdsesc.stocksimul.market.repository.MarketStockRepository;
 
 import java.time.LocalDateTime;
@@ -25,12 +24,11 @@ public class DbMarketService {
 
     private final MarketStockRepository stockRepository;
     private final ReportRepository reportRepository;
-    private final StockInfoRepository stockInfoRepository;
+    
 
-    public DbMarketService(MarketStockRepository stockRepository, ReportRepository reportRepository, StockInfoRepository stockInfoRepository) {
+    public DbMarketService(MarketStockRepository stockRepository, ReportRepository reportRepository) {
         this.stockRepository = stockRepository;
         this.reportRepository = reportRepository;
-        this.stockInfoRepository = stockInfoRepository;
     }
 
     public CandleResponse getCandles(String tickerParam, String symbolParam, Long fromEpochSec, Long toEpochSec, Integer days) {

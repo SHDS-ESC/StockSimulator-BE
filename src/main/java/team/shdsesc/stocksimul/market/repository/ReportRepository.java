@@ -22,6 +22,4 @@ public interface ReportRepository extends JpaRepository<Report, ReportId> {
             @Param("to") LocalDateTime to
     );
 
-    @Query("select distinct r.id.stockId from Report r order by r.id.stockId asc")
-    List<Long> findDistinctStockIds();
 }

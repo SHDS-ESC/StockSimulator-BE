@@ -3,7 +3,7 @@ package team.shdsesc.stocksimul.redis.dao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
-import team.shdsesc.stocksimul.stock.RealTimeStockDTO;
+import team.shdsesc.stocksimul.market.dto.RealTimeStockDTO;
 
 import java.util.List;
 import java.util.Set;

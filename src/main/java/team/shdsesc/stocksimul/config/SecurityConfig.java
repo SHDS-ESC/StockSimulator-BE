@@ -67,7 +67,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/db/**").permitAll()
                         .requestMatchers("/api/market/**").permitAll()
                         .requestMatchers("/api/news/**").permitAll()
-                        .requestMatchers("/api/watchlist/**").permitAll()
                         // 그 외 /api/user/** 는 인증 필요
                         .requestMatchers("/api/user/**").authenticated()
                         // 나머지 요청 처리

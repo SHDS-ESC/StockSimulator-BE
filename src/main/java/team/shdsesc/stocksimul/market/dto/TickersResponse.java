@@ -6,8 +6,6 @@ public class TickersResponse {
     private String s;
     private List<String> tickers;
 
-    public TickersResponse() {}
-
     public TickersResponse(String s, List<String> tickers) {
         this.s = s;
         this.tickers = tickers;
