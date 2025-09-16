@@ -14,16 +14,13 @@ public interface NewsService {
     default Map<String, Object> dtoToEntity(NewsDTO newsDTO){
         Map<String, Object> entityMap = new HashMap<>();
         NewsEntity news = NewsEntity.builder()
-                .id(newsDTO.getId())
-                .ticker(newsDTO.getTicker())
+                .newsId(newsDTO.getNewsId())
+                .stockId(newsDTO.getStockId())
                 .source(newsDTO.getSource())
                 .timePublished(newsDTO.getTimePublished())
                 .title(newsDTO.getTitle())
                 .url(newsDTO.getUrl())
-                .bannerImage(newsDTO.getBannerImage())
-                .summary(newsDTO.getSummary())
-                .topicPrimary(newsDTO.getTopicPrimary())
-                .topicSecondary(newsDTO.getTopicSecondary())
+                .image(newsDTO.getImage())
                 .build();
         entityMap.put("news", news);
         return entityMap;
@@ -31,16 +28,13 @@ public interface NewsService {
 
     default NewsDTO entitiesToDTO(NewsEntity newsEntity){
         NewsDTO newsDTO = NewsDTO.builder()
-                .id(newsEntity.getId())
-                .ticker(newsEntity.getTicker())
+                .newsId(newsEntity.getNewsId())
+                .stockId(newsEntity.getStockId())
                 .source(newsEntity.getSource())
                 .timePublished(newsEntity.getTimePublished())
                 .title(newsEntity.getTitle())
                 .url(newsEntity.getUrl())
-                .bannerImage(newsEntity.getBannerImage())
-                .summary(newsEntity.getSummary())
-                .topicPrimary(newsEntity.getTopicPrimary())
-                .topicSecondary(newsEntity.getTopicSecondary())
+                .image(newsEntity.getImage())
                 .build();
         return newsDTO;
 
