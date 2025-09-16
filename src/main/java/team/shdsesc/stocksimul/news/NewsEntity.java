@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "naver_news")
+@Table(name = "news")
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,9 +17,11 @@ import java.time.LocalDateTime;
 public class NewsEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "news_id")
+    private Long newsId;
 
-    private String ticker;
+    @Column(name = "stock_id")
+    private String stockId;
     private String source;
 
     @Column(name = "time_published")
@@ -28,8 +30,8 @@ public class NewsEntity {
     private String title;
     private String url;
 
-    @Column(name = "banner_image")
-    private String bannerImage;
+
+    private String image;
 
     private String summary;
 }
