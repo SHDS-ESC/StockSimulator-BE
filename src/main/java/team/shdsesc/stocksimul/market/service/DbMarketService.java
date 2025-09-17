@@ -1,5 +1,6 @@
 package team.shdsesc.stocksimul.market.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import team.shdsesc.stocksimul.market.dto.CandleResponse;
 import team.shdsesc.stocksimul.market.dto.RangeResponse;
@@ -20,16 +21,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class DbMarketService {
 
     private final MarketStockRepository stockRepository;
     private final ReportRepository reportRepository;
-    
-
-    public DbMarketService(MarketStockRepository stockRepository, ReportRepository reportRepository) {
-        this.stockRepository = stockRepository;
-        this.reportRepository = reportRepository;
-    }
 
     public CandleResponse getCandles(String tickerParam, String symbolParam, Long fromEpochSec, Long toEpochSec, Integer days) {
         String ticker = resolveTicker(tickerParam, symbolParam);
