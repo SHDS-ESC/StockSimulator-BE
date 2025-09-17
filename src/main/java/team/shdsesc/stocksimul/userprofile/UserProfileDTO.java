@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Builder
 @Getter
 @AllArgsConstructor
@@ -19,4 +21,5 @@ public class UserProfileDTO {
     @Builder.Default
     private String name ="";
     private Integer state;
+    private LocalDateTime processDate;
 }

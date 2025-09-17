@@ -59,7 +59,7 @@ public class UserProfileService {
                 .timeLine(timeLineEntity)
                 .nickname(createUserProfileDTO.getNickname())
                 .cashBalance(timeLineEntity.getSeedMoney())
-                .processDate(LocalDateTime.now())
+                .processDate(timeLineEntity.getFrom())
                 .build();
     }
 
@@ -71,6 +71,7 @@ public class UserProfileService {
                 .cashBalance(entity.getCashBalance())
                 .nickname(entity.getNickname())
                 .name(entity.getTimeLine().getName())
+                .processDate(entity.getProcessDate())
                 .build();
     }
 }
