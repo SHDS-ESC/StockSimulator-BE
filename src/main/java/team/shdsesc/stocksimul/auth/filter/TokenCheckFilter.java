@@ -33,7 +33,7 @@ public class TokenCheckFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        
+
                 // Swagger 관련 경로는 토큰 체크 제외
         String requestURI = request.getRequestURI();
         if (requestURI.startsWith("/swagger-ui") ||
@@ -42,7 +42,7 @@ public class TokenCheckFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        
+
         String path = request.getRequestURI();
         // test, api만 인증 토큰 필터 거침
         // 그 외에는 matcher에 적용하지 않은 경우 403

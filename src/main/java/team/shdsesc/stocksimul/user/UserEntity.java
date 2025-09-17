@@ -3,11 +3,8 @@ package team.shdsesc.stocksimul.user;
 import jakarta.persistence.*;
 import lombok.*;
 import team.shdsesc.stocksimul.auth.util.BaseEntity;
-import team.shdsesc.stocksimul.stock.StockEntity;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
