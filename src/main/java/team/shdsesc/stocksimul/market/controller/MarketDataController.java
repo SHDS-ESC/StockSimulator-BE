@@ -96,7 +96,7 @@ public class MarketDataController {
         try {
             var tickersResponse = dbMarketService.getTickers();
             Map<String, Object> result = new HashMap<>();
-            result.put("status", tickersResponse.getS());
+            result.put("status", tickersResponse.getStatus());
             result.put("tickers", tickersResponse.getTickers());
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -112,7 +112,7 @@ public class MarketDataController {
         try {
             var symbolsResponse = dbMarketService.getSymbols();
             Map<String, Object> result = new HashMap<>();
-            result.put("status", symbolsResponse.getS());
+            result.put("status", symbolsResponse.getStatus());
             result.put("symbols", symbolsResponse.getSymbols());
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -310,20 +310,20 @@ public class MarketDataController {
     private RealTimeStockDTO parseQuoteToStockDTO(String symbol, String quoteJson) {
         try {
             JsonNode root = objectMapper.readTree(quoteJson);
-            double c = root.path("c").asDouble(Double.NaN);
-            double pc = root.path("pc").asDouble(Double.NaN);
-            double d = root.hasNonNull("d") ? root.path("d").asDouble() : (Double.isNaN(c) || Double.isNaN(pc) ? 0.0 : (c - pc));
-            double dp = root.hasNonNull("dp") ? root.path("dp").asDouble() : (Double.isNaN(c) || Double.isNaN(pc) || pc == 0 ? 0.0 : (d / pc) * 100.0);
-            if (Double.isNaN(c)) { return null; }
-            String price = String.format("$%.2f", c);
-            String change = String.format("%+.2f", d);
-            String changePercent = String.format("%+.2f%%", dp);
+            double currentPrice = root.path("c").asDouble(Double.NaN);
+            double previousClose = root.path("pc").asDouble(Double.NaN);
+            double change = root.hasNonNull("d") ? root.path("d").asDouble() : (Double.isNaN(currentPrice) || Double.isNaN(previousClose) ? 0.0 : (currentPrice - previousClose));
+            double changePercent = root.hasNonNull("dp") ? root.path("dp").asDouble() : (Double.isNaN(currentPrice) || Double.isNaN(previousClose) || previousClose == 0 ? 0.0 : (change / previousClose) * 100.0);
+            if (Double.isNaN(currentPrice)) { return null; }
+            String price = String.format("$%.2f", currentPrice);
+            String changeStr = String.format("%+.2f", change);
+            String changePercentStr = String.format("%+.2f%%", changePercent);
             return RealTimeStockDTO.builder()
                     .symbol(symbol)
                     .name(getStockName(symbol))
                     .price(price)
-                    .change(change)
-                    .changePercent(changePercent)
+                    .change(changeStr)
+                    .changePercent(changePercentStr)
                     .volume("0")
                     .logo(getStockLogo(symbol))
                     .build();
@@ -378,5 +378,6 @@ public class MarketDataController {
         return logoMap.getOrDefault(symbol, "📈");
     }
 }
+
 
 

@@ -61,8 +61,6 @@ public class SecurityConfig {
                 ).permitAll()                // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
                 .requestMatchers("/api/user/register").permitAll()
                 // 그 외 /api/user/** 는 인증 필요
-                .requestMatchers("/api/user/**").authenticated()
-                // 나머지 요청 처리
                         .requestMatchers("/api/user/register").permitAll()
                         .requestMatchers("/api/db/**").permitAll()
                         .requestMatchers("/api/market/**").permitAll()

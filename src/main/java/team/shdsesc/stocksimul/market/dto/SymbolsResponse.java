@@ -1,20 +1,20 @@
 package team.shdsesc.stocksimul.market.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SymbolsResponse {
-    private String s;
+    private String status;
     private List<SymbolDTO> symbols;
 
-    public SymbolsResponse(String s, List<SymbolDTO> symbols) {
-        this.s = s;
-        this.symbols = symbols;
-    }
-
-    public String getS() { return s; }
-    public void setS(String s) { this.s = s; }
-    public List<SymbolDTO> getSymbols() { return symbols; }
-    public void setSymbols(List<SymbolDTO> symbols) { this.symbols = symbols; }
 }
 
 

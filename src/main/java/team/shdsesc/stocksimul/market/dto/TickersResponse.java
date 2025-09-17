@@ -1,20 +1,20 @@
 package team.shdsesc.stocksimul.market.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class TickersResponse {
-    private String s;
+    private String status;
     private List<String> tickers;
 
-    public TickersResponse(String s, List<String> tickers) {
-        this.s = s;
-        this.tickers = tickers;
-    }
-
-    public String getS() { return s; }
-    public void setS(String s) { this.s = s; }
-    public List<String> getTickers() { return tickers; }
-    public void setTickers(List<String> tickers) { this.tickers = tickers; }
 }
 
 

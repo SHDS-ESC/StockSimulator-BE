@@ -35,14 +35,14 @@ public class DbCandleController {
     ) {
         CandleResponse body = dbMarketService.getCandles(tickerParam, symbolParam, from, to, days);
         return ResponseEntity.ok(Map.of(
-                "s", body.getS(),
-                "t", body.getT(),
-                "d", body.getD(),
-                "o", body.getO(),
-                "h", body.getH(),
-                "l", body.getL(),
-                "c", body.getC(),
-                "v", body.getV()
+                "s", body.getStatus(),
+                "t", body.getTimestamps(),
+                "d", body.getDates(),
+                "o", body.getOpens(),
+                "h", body.getHighs(),
+                "l", body.getLows(),
+                "c", body.getCloses(),
+                "v", body.getVolumes()
         ));
     }
 
@@ -52,23 +52,24 @@ public class DbCandleController {
             @RequestParam(value = "days", required = false) Integer days
     ) {
         RangeResponse r = dbMarketService.getLastRange(ticker, days);
-        if (!"ok".equals(r.getS())) {
+        if (!"ok".equals(r.getStatus())) {
             return ResponseEntity.ok(Map.of("s", "no_data"));
         }
-        return ResponseEntity.ok(Map.of("s", r.getS(), "last", r.getLast(), "from", r.getFrom(), "to", r.getTo()));
+        return ResponseEntity.ok(Map.of("s", r.getStatus(), "last", r.getLast(), "from", r.getFrom(), "to", r.getTo()));
     }
 
     @GetMapping("/tickers")
     public ResponseEntity<Map<String, Object>> getTickers() {
         TickersResponse r = dbMarketService.getTickers();
-        return ResponseEntity.ok(Map.of("s", r.getS(), "tickers", r.getTickers()));
+        return ResponseEntity.ok(Map.of("s", r.getStatus(), "tickers", r.getTickers()));
     }
 
     @GetMapping("/symbols")
     public ResponseEntity<Map<String, Object>> getSymbols() {
         SymbolsResponse r = dbMarketService.getSymbols();
-        return ResponseEntity.ok(Map.of("s", r.getS(), "symbols", r.getSymbols()));
+        return ResponseEntity.ok(Map.of("s", r.getStatus(), "symbols", r.getSymbols()));
     }
 }
+
 
 

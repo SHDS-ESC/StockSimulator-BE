@@ -5,11 +5,17 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "report")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Report {
 
     @EmbeddedId
@@ -45,99 +51,12 @@ public class Report {
     @Column(name = "obv")
     private Double obv;
 
-    public ReportId getId() {
-        return id;
-    }
-
-    public void setId(ReportId id) {
-        this.id = id;
-    }
-
+    // 특별한 로직이 있는 메서드들은 롬복으로 대체할 수 없으므로 유지
     public LocalDateTime getDate() {
         return id != null ? id.getDate() : null;
     }
 
     public Long getStockId() {
         return id != null ? id.getStockId() : null;
-    }
-
-    public Double getOpen() {
-        return open;
-    }
-
-    public void setOpen(Double open) {
-        this.open = open;
-    }
-
-    public Double getClose() {
-        return close;
-    }
-
-    public void setClose(Double close) {
-        this.close = close;
-    }
-
-    public Double getHigh() {
-        return high;
-    }
-
-    public void setHigh(Double high) {
-        this.high = high;
-    }
-
-    public Double getLow() {
-        return low;
-    }
-
-    public void setLow(Double low) {
-        this.low = low;
-    }
-
-    public Long getVolume() {
-        return volume;
-    }
-
-    public void setVolume(Long volume) {
-        this.volume = volume;
-    }
-
-    public Double getRsi() {
-        return rsi;
-    }
-
-    public void setRsi(Double rsi) {
-        this.rsi = rsi;
-    }
-
-    public Double getMacd() {
-        return macd;
-    }
-
-    public void setMacd(Double macd) {
-        this.macd = macd;
-    }
-
-    public Double getAtr() {
-        return atr;
-    }
-
-    public void setAtr(Double atr) {
-        this.atr = atr;
-    }
-
-    public Double getStochastic() {
-        return stochastic;
-    }
-
-    public void setStochastic(Double stochastic) {
-        this.stochastic = stochastic;
-    }
-
-    public Double getObv() {
-        return obv;
-    }
-
-    public void setObv(Double obv) {
-        this.obv = obv;
     }
 }

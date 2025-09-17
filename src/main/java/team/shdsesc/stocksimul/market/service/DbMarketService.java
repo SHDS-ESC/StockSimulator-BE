@@ -72,27 +72,27 @@ public class DbMarketService {
 
         rows.sort(Comparator.comparing(Report::getDate));
 
-        List<Long> t = new ArrayList<>();
-        List<String> d = new ArrayList<>();
-        List<Double> o = new ArrayList<>();
-        List<Double> h = new ArrayList<>();
-        List<Double> l = new ArrayList<>();
-        List<Double> c = new ArrayList<>();
-        List<Double> v = new ArrayList<>();
+        List<Long> timestamps = new ArrayList<>();
+        List<String> dates = new ArrayList<>();
+        List<Double> opens = new ArrayList<>();
+        List<Double> highs = new ArrayList<>();
+        List<Double> lows = new ArrayList<>();
+        List<Double> closes = new ArrayList<>();
+        List<Double> volumes = new ArrayList<>();
 
         for (Report r : rows) {
             LocalDateTime dt = r.getDate();
             long epochSec = dt.toEpochSecond(ZoneOffset.UTC);
-            t.add(epochSec);
-            d.add(dt.toLocalDate().toString());
-            o.add(nullSafe(r.getOpen()));
-            h.add(nullSafe(r.getHigh()));
-            l.add(nullSafe(r.getLow()));
-            c.add(nullSafe(r.getClose()));
-            v.add(nullSafeDouble(r.getVolume()));
+            timestamps.add(epochSec);
+            dates.add(dt.toLocalDate().toString());
+            opens.add(nullSafe(r.getOpen()));
+            highs.add(nullSafe(r.getHigh()));
+            lows.add(nullSafe(r.getLow()));
+            closes.add(nullSafe(r.getClose()));
+            volumes.add(nullSafeDouble(r.getVolume()));
         }
 
-        return new CandleResponse("ok", t, d, o, h, l, c, v);
+        return new CandleResponse("ok", timestamps, dates, opens, highs, lows, closes, volumes);
     }
 
     public RangeResponse getLastRange(String ticker, Integer days) {
