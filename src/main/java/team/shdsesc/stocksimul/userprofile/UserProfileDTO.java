@@ -22,4 +22,9 @@ public class UserProfileDTO {
     private String name ="";
     private Integer state;
     private LocalDateTime processDate;
+    // Timeline details for FE routing and chart mode
+    private Long timelineId;
+    private Integer timelineType;
+    private LocalDateTime timelineFrom;
+    private LocalDateTime timelineTo;
 }

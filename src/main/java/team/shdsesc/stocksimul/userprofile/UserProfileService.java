@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import team.shdsesc.stocksimul.user.UserEntity;
 import team.shdsesc.stocksimul.user.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -72,6 +71,10 @@ public class UserProfileService {
                 .nickname(entity.getNickname())
                 .name(entity.getTimeLine().getName())
                 .processDate(entity.getProcessDate())
+                .timelineId(entity.getTimeLine().getTimelineId())
+                .timelineType(entity.getTimeLine().getType())
+                .timelineFrom(entity.getTimeLine().getFrom())
+                .timelineTo(entity.getTimeLine().getTo())
                 .build();
     }
 }
