@@ -1,10 +1,12 @@
 package team.shdsesc.stocksimul.userprofile;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Builder
@@ -21,10 +23,10 @@ public class UserProfileDTO {
     @Builder.Default
     private String name ="";
     private Integer state;
-    private LocalDateTime processDate;
     // Timeline details for FE routing and chart mode
     private Long timelineId;
     private Integer timelineType;
     private LocalDateTime timelineFrom;
     private LocalDateTime timelineTo;
+    private LocalDate processDate;
 }

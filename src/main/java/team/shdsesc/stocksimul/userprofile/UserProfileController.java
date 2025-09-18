@@ -59,5 +59,14 @@ public class UserProfileController {
                 .ok()
                 .build();
     }
+
+    @PostMapping("/update/process-date")
+    @Operation(summary = "진행 날짜 업데이트", description = "턴 종료 시 진행 날짜를 업데이트 합니다.")
+    public ResponseEntity<?> updateProcessDate(@RequestBody UpdateUserProfileProcessDateDTO userProfileProcessDateDTO) {
+        userProfileService.updateProcessDate(userProfileProcessDateDTO.getUserProfileId(), userProfileProcessDateDTO.getProcessDate());
+        return ResponseEntity
+                .ok()
+                .build();
+    }
 }
 
