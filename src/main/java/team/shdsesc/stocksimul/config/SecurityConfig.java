@@ -58,17 +58,17 @@ public class SecurityConfig {
                         "/webjars/**",
                         "/configuration/ui",
                         "/configuration/security"
-                ).permitAll()                // .requestMatchers("/boards/register").hasAnyRole("BASIC","MANAGER","ADMIN")
+                ).permitAll()
+                .requestMatchers(
+                        "/api/db/**",
+                        "/api/market/**",
+                        "/api/news/**",
+                        "/api/watchlist/**"
+                ).permitAll()
                 .requestMatchers("/api/user/register").permitAll()
-                // 그 외 /api/user/** 는 인증 필요
-                        .requestMatchers("/api/user/register").permitAll()
-                        .requestMatchers("/api/db/**").permitAll()
-                        .requestMatchers("/api/market/**").permitAll()
-                        .requestMatchers("/api/news/**").permitAll()
-                        // 그 외 /api/user/** 는 인증 필요
-                        .requestMatchers("/api/user/**").authenticated()
-                        // 나머지 요청 처리
-                        .anyRequest().permitAll()
+                .requestMatchers("/auth").permitAll()
+                .requestMatchers("/api/user/**").authenticated()
+                .anyRequest().permitAll()
         );
 
         // CORS 설정

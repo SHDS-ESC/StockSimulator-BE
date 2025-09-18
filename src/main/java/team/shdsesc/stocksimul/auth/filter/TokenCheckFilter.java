@@ -47,12 +47,17 @@ public class TokenCheckFilter extends OncePerRequestFilter {
         // test, api만 인증 토큰 필터 거침
         // 그 외에는 matcher에 적용하지 않은 경우 403
         // 🔹 토큰 검증에서 완전히 제외할 경로
-        log.info("path: " + path);
-        if (path.startsWith("/auth") || path.startsWith("/api/user/register")
-                || path.startsWith("/dev")
-                // favicon은 열어둬야 하나 말아야 하나..
-                || path.startsWith("/favicon.ico")
-                ) {
+        if (path.startsWith("/auth") || 
+            path.startsWith("/api/user/register") ||
+            path.startsWith("/user/register") ||
+            path.startsWith("/api/db/") ||
+            path.startsWith("/api/api/") ||
+            path.startsWith("/api/market/") ||
+            path.startsWith("/api/news/") ||
+            path.startsWith("/api/stock/") ||
+            path.startsWith("/api/tickers") ||
+            path.startsWith("/api/candles") ||
+            path.startsWith("/api/watchlist")) {
             filterChain.doFilter(request, response);
             return; // 여기서 바로 빠져나감 → 토큰 체크 안 함
         }

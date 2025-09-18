@@ -46,5 +46,27 @@ public class NewsController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/date")
+    @Operation(summary = "특정 날짜의 뉴스 조회", description = "지정된 날짜의 뉴스를 조회합니다.")
+    public ResponseEntity<PageResultDTO<NewsDTO, NewsEntity>> getNewsByDate(
+            @Parameter(description = "조회할 날짜 (YYYY-MM-DD)")
+            @RequestParam String processDate,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        log.info("날짜별 뉴스 조회 요청 - processDate: {}, page: {}, size: {}", processDate, page, size);
+
+        PageRequestDTO requestDTO = PageRequestDTO.builder()
+                .page(page)
+                .size(size)
+                .build();
+
+        PageResultDTO<NewsDTO, NewsEntity> result = newsService.getNewsByDate(processDate, requestDTO);
+
+        log.info("날짜별 뉴스 조회 완료 - 총 개수: {}, 전체 페이지: {}",
+                result.getDtoList().size(), result.getTotalPage());
+
+        return ResponseEntity.ok(result);
+    }
 
 }

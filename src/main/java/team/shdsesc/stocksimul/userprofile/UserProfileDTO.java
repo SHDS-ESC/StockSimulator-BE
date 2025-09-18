@@ -23,6 +23,10 @@ public class UserProfileDTO {
     @Builder.Default
     private String name ="";
     private Integer state;
-
+    // Timeline details for FE routing and chart mode
+    private Long timelineId;
+    private Integer timelineType;
+    private LocalDateTime timelineFrom;
+    private LocalDateTime timelineTo;
     private LocalDate processDate;
 }
