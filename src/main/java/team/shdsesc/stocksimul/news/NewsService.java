@@ -4,12 +4,21 @@ package team.shdsesc.stocksimul.news;
 import team.shdsesc.stocksimul.dto.PageRequestDTO;
 import team.shdsesc.stocksimul.dto.PageResultDTO;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 public interface NewsService {
     PageResultDTO<NewsDTO, NewsEntity> getList(PageRequestDTO requestDTO);
     long getTotalCount();
+
+    //특정 날짜의 뉴스 조회 메서드
+    PageResultDTO<NewsDTO, NewsEntity> getNewsByUser(Long userProfileId, PageRequestDTO requestDTO);
+    
+    //날짜 파라미터로 직접 뉴스 조회 메서드
+    PageResultDTO<NewsDTO, NewsEntity> getNewsByDate(String processDate, PageRequestDTO requestDTO);
+
 
     default Map<String, Object> dtoToEntity(NewsDTO newsDTO){
         Map<String, Object> entityMap = new HashMap<>();
