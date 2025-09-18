@@ -10,12 +10,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import team.shdsesc.stocksimul.dto.PageRequestDTO;
 import team.shdsesc.stocksimul.dto.PageResultDTO;
-import team.shdsesc.stocksimul.userprofile.QUserProfileEntity;
 import team.shdsesc.stocksimul.userprofile.UserProfileDTO;
 import team.shdsesc.stocksimul.userprofile.UserProfileService;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Service
 @Log4j2
@@ -25,14 +23,13 @@ public class NewsServiceImpl implements NewsService {
     private final UserProfileService userProfileService;
 
     private final QNewsEntity qNews = QNewsEntity.newsEntity;
-    private final QUserProfileEntity qUserProfile = QUserProfileEntity.userProfileEntity;
 
     @Override
     public PageResultDTO<NewsDTO, NewsEntity> getNewsByUser(Long userProfileId, PageRequestDTO pageRequestDTO) {
        //1. 사용자의 현재 프로필 조회
         UserProfileDTO currentProfile = userProfileService.getCurrentUserProfile(userProfileId);
         //2. 프로필에서 시뮬레이션 날짜 추출
-        LocalDateTime processDate = currentProfile.getProcessDate();
+        LocalDate processDate = currentProfile.getProcessDate();
         
 
         //3. 페이징 정보 설정
@@ -40,7 +37,7 @@ public class NewsServiceImpl implements NewsService {
 
         //4. QueryDSL 조건 생성(날짜만 비교)
         BooleanBuilder builder = new BooleanBuilder();
-        LocalDate targetDate = processDate.toLocalDate();
+        LocalDate targetDate = processDate;
         //Date()함수로 날짜만 비교
         builder.and(Expressions.dateTemplate(LocalDate.class, "DATE({0})", qNews.timePublished).eq(targetDate));
 
