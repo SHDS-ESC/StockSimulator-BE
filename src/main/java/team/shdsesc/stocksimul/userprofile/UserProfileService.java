@@ -9,8 +9,6 @@ import team.shdsesc.stocksimul.user.UserRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -83,6 +81,10 @@ public class UserProfileService {
                 .cashBalance(entity.getCashBalance())
                 .nickname(entity.getNickname())
                 .name(entity.getTimeLine().getName())
+                .timelineId(entity.getTimeLine().getTimelineId())
+                .timelineType(entity.getTimeLine().getType())
+                .timelineFrom(entity.getTimeLine().getFrom())
+                .timelineTo(entity.getTimeLine().getTo())
                 .processDate(entity.getProcessDate().toLocalDate())
                 .build();
     }
