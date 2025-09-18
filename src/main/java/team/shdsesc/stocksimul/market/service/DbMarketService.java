@@ -12,9 +12,11 @@ import team.shdsesc.stocksimul.market.entity.Stock;
 import team.shdsesc.stocksimul.market.repository.ReportRepository;
 import team.shdsesc.stocksimul.market.repository.MarketStockRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -135,6 +137,158 @@ public class DbMarketService {
                 })
                 .collect(Collectors.toList());
         return new SymbolsResponse("ok", symbols);
+    }
+
+    /**
+     * 스냅샷 페이지(정렬/필터/페이징) 계산을 서비스에서 수행하여 컨트롤러 단순화
+     */
+    public java.util.Map<String, Object> getSnapshotPage(LocalDate date, Integer page, Integer size, String sort, String symbolsCsv) {
+        List<java.util.Map<String, Object>> rows = getSnapshotRows(date);
+
+        // sort parsing: key,direction
+        String sortKey = "changePercentValue"; // default numeric key
+        boolean desc = true;
+        if (sort != null && !sort.isBlank()) {
+            String[] parts = sort.split(",");
+            String k = parts[0].trim();
+            String d = parts.length > 1 ? parts[1].trim().toLowerCase() : "desc";
+            switch (k) {
+                case "name": sortKey = "name"; break;
+                case "price": sortKey = "priceValue"; break;
+                case "change": sortKey = "changeValue"; break;
+                case "changePercent": sortKey = "changePercentValue"; break;
+                default: break;
+            }
+            desc = !"asc".equals(d);
+        }
+
+        final String sortKeyFinal = sortKey;
+        final boolean descFinal = desc;
+        rows.sort((a, b) -> {
+            Object va = a.get(sortKeyFinal);
+            Object vb = b.get(sortKeyFinal);
+            int cmp;
+            if (va instanceof Number && vb instanceof Number) {
+                cmp = Double.compare(((Number) va).doubleValue(), ((Number) vb).doubleValue());
+            } else {
+                cmp = String.valueOf(va).compareToIgnoreCase(String.valueOf(vb));
+            }
+            return descFinal ? -cmp : cmp;
+        });
+
+        // 선택 심볼 필터
+        java.util.Set<String> pick = null;
+        if (symbolsCsv != null && !symbolsCsv.isBlank()) {
+            pick = java.util.Arrays.stream(symbolsCsv.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(java.util.stream.Collectors.toSet());
+            if (!pick.isEmpty()) {
+                final java.util.Set<String> pickFinal = pick;
+                rows = rows.stream().filter(r -> pickFinal.contains(String.valueOf(r.get("symbol")))).toList();
+            }
+        }
+
+        int total = rows.size();
+        int p = (page == null || page < 1) ? 1 : page;
+        int s = (size == null || size < 1) ? 6 : size;
+        int from = Math.min((p - 1) * s, Math.max(total - 1, 0));
+        int to = Math.min(from + s, total);
+        List<java.util.Map<String, Object>> pageRows = rows.subList(from, to);
+
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("status", "ok");
+        resp.put("s", "ok");
+        resp.put("total", total);
+        resp.put("page", p);
+        resp.put("size", s);
+        resp.put("rows", pageRows);
+        return resp;
+    }
+
+    // getSnapshotRowsPage 제거됨 (미사용)
+
+    /**
+     * 지정된 날짜에 대한 모든 종목의 스냅샷(해당일 종가와 전일 종가 기반)을 계산하여 반환합니다.
+     * 반환 형식: List<Map> with keys: symbol, name, price, change, changePercent
+     */
+    public List<java.util.Map<String, Object>> getSnapshotRows(LocalDate date) {
+        if (date == null) {
+            return java.util.Collections.emptyList();
+        }
+        LocalDate prev = date.minusDays(1);
+        LocalDateTime selStart = date.atStartOfDay();
+        LocalDateTime selEnd = date.atTime(23, 59, 59);
+        LocalDateTime prevStart = prev.atStartOfDay();
+        LocalDateTime prevEnd = prev.atTime(23, 59, 59);
+        // 대량 쿼리로 (stockId, date, close) 한번에 로드
+        // 빈 결과 방지: 기간에 데이터가 없으면 최근 range를 기준으로 계산
+        List<Object[]> tuples = reportRepository.findClosesByRange(prevStart, selEnd);
+        if (tuples == null || tuples.isEmpty()) {
+            // 가장 최근 날짜 범위를 조회해 스냅샷 구성 (fallback)
+            try {
+                List<Stock> allStocks = stockRepository.findAllOrderByTicker();
+                if (allStocks.isEmpty()) return java.util.Collections.emptyList();
+                // 첫 종목 기준으로 최근 범위를 구하고 동일 범위를 사용 (간단한 폴백)
+                Optional<LocalDateTime> lastOpt = reportRepository.findLastDate(allStocks.get(0).getStockId());
+                if (lastOpt.isPresent()) {
+                    LocalDateTime last = lastOpt.get();
+                    LocalDateTime from = last.minusDays(7).withHour(0).withMinute(0).withSecond(0).withNano(0);
+                    LocalDateTime to = last.withHour(23).withMinute(59).withSecond(59).withNano(0);
+                    List<Object[]> backup = reportRepository.findClosesByRange(from, to);
+                    if (backup != null) {
+                        tuples = backup;
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+        java.util.Map<Long, double[]> closeMap = new java.util.HashMap<>();
+        if (tuples == null) tuples = java.util.Collections.emptyList();
+        for (Object[] t : tuples) {
+            Long sid = (Long) t[0];
+            LocalDateTime dt = (LocalDateTime) t[1];
+            Double close = (Double) t[2];
+            double[] arr = closeMap.computeIfAbsent(sid, k -> new double[]{Double.NaN, Double.NaN});
+            if (!dt.isAfter(prevEnd)) {
+                // 전일 종가(마지막 값)
+                arr[0] = close;
+            } else if (!dt.isBefore(selStart)) {
+                // 당일 종가(첫 값)
+                if (Double.isNaN(arr[1])) arr[1] = close;
+            }
+        }
+
+        List<Stock> all = stockRepository.findAllOrderByTicker();
+        List<java.util.Map<String, Object>> rows = new ArrayList<>();
+        for (Stock s : all) {
+            Long stockId = s.getStockId();
+            if (stockId == null) continue;
+            double[] arr = closeMap.get(stockId);
+            if (arr == null) continue;
+            double prevClose = arr[0];
+            double selClose = arr[1];
+            if (Double.isNaN(prevClose) || Double.isNaN(selClose)) continue;
+
+            rows.add(buildSnapshotRow(s, prevClose, selClose));
+        }
+        return rows;
+    }
+
+    private static java.util.Map<String, Object> buildSnapshotRow(Stock stock, double prevClose, double selClose) {
+        double chg = selClose - prevClose;
+        double pct = prevClose != 0.0 ? (chg / prevClose) * 100.0 : 0.0;
+        java.util.Map<String, Object> row = new HashMap<>();
+        row.put("symbol", stock.getTicker());
+        row.put("name", stock.getName());
+        // numeric values for server-side sort
+        row.put("priceValue", selClose);
+        row.put("changeValue", chg);
+        row.put("changePercentValue", pct);
+        // formatted strings for display
+        row.put("price", String.format("$%.2f", selClose));
+        row.put("change", String.format("%s%.2f", chg >= 0 ? "+" : "", chg));
+        row.put("changePercent", String.format("%s%.2f%%", pct >= 0 ? "+" : "", pct));
+        return row;
     }
 
     private static String resolveTicker(String tickerParam, String symbolParam) {
