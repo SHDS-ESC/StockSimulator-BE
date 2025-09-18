@@ -12,6 +12,7 @@ import team.shdsesc.stocksimul.market.dto.TickersResponse;
 import team.shdsesc.stocksimul.market.dto.SymbolsResponse;
 import team.shdsesc.stocksimul.market.service.DbMarketService;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -34,16 +35,17 @@ public class DbCandleController {
             @RequestParam(value = "days", required = false) Integer days
     ) {
         CandleResponse body = dbMarketService.getCandles(tickerParam, symbolParam, from, to, days);
-        return ResponseEntity.ok(Map.of(
-                "s", body.getStatus(),
-                "t", body.getTimestamps(),
-                "d", body.getDates(),
-                "o", body.getOpens(),
-                "h", body.getHighs(),
-                "l", body.getLows(),
-                "c", body.getCloses(),
-                "v", body.getVolumes()
-        ));
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        // 풀네임 키만 제공
+        resp.put("status", body.getStatus());
+        resp.put("timestamps", body.getTimestamps());
+        resp.put("dates", body.getDates());
+        resp.put("opens", body.getOpens());
+        resp.put("highs", body.getHighs());
+        resp.put("lows", body.getLows());
+        resp.put("closes", body.getCloses());
+        resp.put("volumes", body.getVolumes());
+        return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/last-range")
@@ -52,22 +54,56 @@ public class DbCandleController {
             @RequestParam(value = "days", required = false) Integer days
     ) {
         RangeResponse r = dbMarketService.getLastRange(ticker, days);
-        if (!"ok".equals(r.getStatus())) {
-            return ResponseEntity.ok(Map.of("s", "no_data"));
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        String status = r.getStatus();
+        resp.put("status", status);
+        if (!"ok".equals(status)) {
+            return ResponseEntity.ok(resp);
         }
-        return ResponseEntity.ok(Map.of("s", r.getStatus(), "last", r.getLast(), "from", r.getFrom(), "to", r.getTo()));
+        resp.put("last", r.getLast());
+        resp.put("from", r.getFrom());
+        resp.put("to", r.getTo());
+        return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/tickers")
     public ResponseEntity<Map<String, Object>> getTickers() {
         TickersResponse r = dbMarketService.getTickers();
-        return ResponseEntity.ok(Map.of("s", r.getStatus(), "tickers", r.getTickers()));
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("status", r.getStatus());
+        resp.put("tickers", r.getTickers());
+        return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/symbols")
     public ResponseEntity<Map<String, Object>> getSymbols() {
         SymbolsResponse r = dbMarketService.getSymbols();
-        return ResponseEntity.ok(Map.of("s", r.getStatus(), "symbols", r.getSymbols()));
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("status", r.getStatus());
+        resp.put("symbols", r.getSymbols());
+        return ResponseEntity.ok(resp);
+    }
+
+    // 과거 스냅샷: 지정 날짜의 종가/전일 종가 기반 지표를 일괄 반환
+    @GetMapping("/snapshot")
+    public ResponseEntity<Map<String, Object>> getSnapshot(
+            @RequestParam("date") String dateStr,
+            @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
+            @RequestParam(value = "size", required = false, defaultValue = "6") Integer size,
+            @RequestParam(value = "sort", required = false, defaultValue = "changePercent,desc") String sort,
+            @RequestParam(value = "symbols", required = false) String symbolsCsv
+    ) {
+        try {
+            LocalDate date = LocalDate.parse(dateStr);
+            java.util.Map<String, Object> pageResp = dbMarketService.getSnapshotPage(date, page, size, sort, symbolsCsv);
+            return ResponseEntity.ok(pageResp);
+        } catch (Exception e) {
+            java.util.Map<String, Object> resp = new java.util.HashMap<>();
+            resp.put("status", "error");
+            resp.put("message", e.getMessage());
+            resp.put("rows", java.util.List.of());
+            return ResponseEntity.ok(resp);
+        }
     }
 }
 
