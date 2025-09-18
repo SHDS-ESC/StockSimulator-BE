@@ -3,6 +3,7 @@ package team.shdsesc.stocksimul.userprofile;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,5 +22,15 @@ public class UserProfileRepositoryCustomImpl implements UserProfileRepositoryCus
                 .fetch();
 
         return Optional.ofNullable(result);
+    }
+
+    @Override
+    public void updateUserProfileByProcessDate(LocalDateTime date, Long userProfileId){
+        QUserProfileEntity userProfile = QUserProfileEntity.userProfileEntity;
+
+        queryFactory.update(userProfile)
+                .set(userProfile.processDate, date)
+                .where(userProfile.usersProfileId.eq(userProfileId))
+                .execute();
     }
 }
