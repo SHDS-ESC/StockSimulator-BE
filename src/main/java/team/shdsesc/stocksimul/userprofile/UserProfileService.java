@@ -7,7 +7,10 @@ import org.springframework.stereotype.Service;
 import team.shdsesc.stocksimul.user.UserEntity;
 import team.shdsesc.stocksimul.user.UserRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -48,6 +51,15 @@ public class UserProfileService {
         userRepository.updateCurrentProfileUser(user.getUsersId(), updateUserProfileDTO.getUserProfileId());
     }
 
+    @Transactional
+    public void updateProcessDate(Long id, String date){
+        // 1) 문자열을 LocalDate 로 파싱
+        LocalDate localDate = LocalDate.parse(date);
+        // 2) 원하는 시각(예: 자정) 붙여서 LocalDateTime 으로 변환
+        LocalDateTime processDate = localDate.atStartOfDay();
+        userProfileRepository.updateUserProfileByProcessDate(processDate, id);
+    }
+
     public UserProfileDTO getCurrentUserProfile(Long pid){
         UserProfileEntity userProfileEntity = userProfileRepository.findById(pid).orElseThrow(() -> new RuntimeException("UserProfile not found"));
         return toUserProfileDTO(userProfileEntity);
@@ -71,7 +83,7 @@ public class UserProfileService {
                 .cashBalance(entity.getCashBalance())
                 .nickname(entity.getNickname())
                 .name(entity.getTimeLine().getName())
-                .processDate(entity.getProcessDate())
+                .processDate(entity.getProcessDate().toLocalDate())
                 .build();
     }
 }
