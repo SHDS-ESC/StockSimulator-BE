@@ -37,15 +37,15 @@ public class NewsServiceImpl implements NewsService {
 
         //4. QueryDSL 조건 생성(날짜만 비교)
         BooleanBuilder builder = new BooleanBuilder();
-        LocalDate targetDate = processDate;
+
         //Date()함수로 날짜만 비교
-        builder.and(Expressions.dateTemplate(LocalDate.class, "DATE({0})", qNews.timePublished).eq(targetDate));
+        builder.and(Expressions.dateTemplate(LocalDate.class, "DATE({0})", qNews.timePublished).eq(processDate));
 
         //5. 조건에 맞는 뉴스 조회
         Page<NewsEntity> result = newsRepository.findAll(builder, pageable);
 
         //6.로그 출력
-        log.info("UserProfielId {}의 시뮬레이션 날짜 {}에 맞는 뉴스 개수 : {}", userProfileId, targetDate, result.getTotalElements());
+        log.info("UserProfielId {}의 시뮬레이션 날짜 {}에 맞는 뉴스 개수 : {}", userProfileId, processDate, result.getTotalElements());
 
         //7. 결과 반환
         return new PageResultDTO<>(result,this::entitiesToDTO);
