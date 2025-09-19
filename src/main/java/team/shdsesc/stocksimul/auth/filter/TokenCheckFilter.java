@@ -57,7 +57,8 @@ public class TokenCheckFilter extends OncePerRequestFilter {
             path.startsWith("/api/stock/") ||
             path.startsWith("/api/tickers") ||
             path.startsWith("/api/candles") ||
-            path.startsWith("/api/watchlist")) {
+            path.startsWith("/api/watchlist") ||
+            path.startsWith("/dev")) {
             filterChain.doFilter(request, response);
             return; // 여기서 바로 빠져나감 → 토큰 체크 안 함
         }
