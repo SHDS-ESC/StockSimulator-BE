@@ -347,35 +347,11 @@ public class MarketDataController {
     }
 
     private String getStockName(String symbol) {
-        Map<String, String> nameMap = Map.of(
-                "AAPL", "Apple Inc.",
-                "MSFT", "Microsoft Corporation",
-                "GOOGL", "Alphabet Inc.",
-                "AMZN", "Amazon.com Inc.",
-                "TSLA", "Tesla Inc.",
-                "META", "Meta Platforms Inc.",
-                "NVDA", "NVIDIA Corporation",
-                "NFLX", "Netflix Inc.",
-                "AMD", "Advanced Micro Devices",
-                "INTC", "Intel Corporation"
-        );
-        return nameMap.getOrDefault(symbol, symbol + " Corporation");
+		return symbol;
     }
 
     private String getStockLogo(String symbol) {
-        Map<String, String> logoMap = Map.of(
-                "AAPL", "🍎",
-                "MSFT", "🪟",
-                "GOOGL", "🔍",
-                "AMZN", "📦",
-                "TSLA", "⚡",
-                "META", "📘",
-                "NVDA", "🎮",
-                "NFLX", "🎬",
-                "AMD", "💻",
-                "INTC", "🔧"
-        );
-        return logoMap.getOrDefault(symbol, "📈");
+		return "📈";
     }
 }
 
