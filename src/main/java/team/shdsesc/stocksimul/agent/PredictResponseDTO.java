@@ -11,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"chartFull", "chart30d"})
 public class PredictResponseDTO {
 
     @JsonProperty("ticker")
@@ -31,4 +31,13 @@ public class PredictResponseDTO {
 
     @JsonProperty("predicted")
     private List<PredictResultDTO> results;
+
+    // 차트 이미지 base64
+    @JsonProperty("chart_full")
+    private String chartFull;
+
+    @JsonProperty("chart_30d")
+    private String chart30d;
+
+
 }
