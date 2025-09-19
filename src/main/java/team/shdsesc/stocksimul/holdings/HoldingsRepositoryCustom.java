@@ -7,5 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface HoldingsRepositoryCustom{
-    Optional<List<HoldingsEntity>> getHoldingsList(Long usersProfileId);
+    List<HoldingsEntity> getHoldingsList(Long usersProfileId);
+    Optional<HoldingsEntity> getHoldingsStockAmount(Long usersProfileId, Long StockId);
+    void updateHoldingStockAmount(Long usersProfileId, Long StockId, Long quantity);
 }

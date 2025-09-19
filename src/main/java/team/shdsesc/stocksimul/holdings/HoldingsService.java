@@ -28,7 +28,7 @@ public class HoldingsService {
     }
 
     List<HoldingsResponseDTO> getHoldingsList(Long usersProfileId) {
-        List<HoldingsEntity> holdingsEntityList = holdingsRepository.getHoldingsList(usersProfileId).orElseThrow(() -> new RuntimeException("Holdings not found"));
+        List<HoldingsEntity> holdingsEntityList = holdingsRepository.getHoldingsList(usersProfileId);
         return holdingsEntityList
                 .stream()
                 .map(this::toHoldingsResponseDTOS)

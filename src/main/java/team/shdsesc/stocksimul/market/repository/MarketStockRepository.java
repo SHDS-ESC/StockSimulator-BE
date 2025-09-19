@@ -18,6 +18,10 @@ public interface MarketStockRepository extends JpaRepository<Stock, Long> {
 
     @Query("select distinct s.ticker from Stock s order by s.ticker asc")
     List<String> findDistinctTickers();
+
+    @Query("select s.stockId from Stock s where s.ticker = :ticker")
+    Optional<Long> findByTickerId(@Param("ticker") String ticker);
+
 }
 
 
