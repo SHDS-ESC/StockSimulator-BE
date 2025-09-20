@@ -1,13 +1,9 @@
 package team.shdsesc.stocksimul.agent;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Getter
 @Setter
@@ -17,21 +13,6 @@ public class PredictResponseDTO {
     @JsonProperty("ticker")
     private String ticker;
 
-    @JsonProperty("base_date")
-    private LocalDate baseDate;
-
-    @JsonProperty("last_price")
-    private Double lastPrice;
-
-    @JsonProperty("train_data_count")
-    private int trainDataCount;
-
-    @JsonProperty("feature_count")
-    private int featureCount;
-
-    @JsonProperty("predicted")
-    private List<PredictResultDTO> results;
-
     // 차트 이미지 base64
     @JsonProperty("chart_full")
     private String chartFull;
@@ -39,5 +20,7 @@ public class PredictResponseDTO {
     @JsonProperty("chart_30d")
     private String chart30d;
 
+    @JsonProperty("investment_analysis")
+    private InvestmentAnalysisDTO investmentAnalysis;
 
 }
