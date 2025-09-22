@@ -4,8 +4,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import team.shdsesc.stocksimul.holdings.HoldingsRepository;
 import team.shdsesc.stocksimul.user.UserEntity;
 import team.shdsesc.stocksimul.user.UserRepository;
+import team.shdsesc.stocksimul.util.FormatUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,6 +20,8 @@ public class UserProfileService {
     private final TimeLineRepository timeLineRepository;
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final HoldingsRepository holdingsRepository;
+    private final FormatUtil formatUtil;
 
     public List<TimeLineEntity> getTimeLineList() {
         return timeLineRepository.findAll();
@@ -74,11 +78,18 @@ public class UserProfileService {
     }
 
     public UserProfileDTO toUserProfileDTO(UserProfileEntity entity) {
+        Double totalInvested = holdingsRepository.getHoldingsTotalPrice(entity.getUsersProfileId());
+        Double cashBalance = entity.getCashBalance();
+        Double totalAsset = totalInvested + cashBalance;
+
         return UserProfileDTO.builder()
                 .id(entity.getUsersProfileId())
-                .totalInvested(entity.getTimeLine().getSeedMoney())
-                .totalAssets(entity.getTimeLine().getSeedMoney() - entity.getCashBalance())
-                .cashBalance(entity.getCashBalance())
+                // 총 투자 자산
+                .totalInvested(formatUtil.changePriceFormatter(totalInvested))
+                // 총 자산
+                .totalAssets(formatUtil.changePriceFormatter(totalAsset))
+                // 현금 자산
+                .cashBalance(formatUtil.changePriceFormatter(entity.getCashBalance()))
                 .nickname(entity.getNickname())
                 .name(entity.getTimeLine().getName())
                 .timelineId(entity.getTimeLine().getTimelineId())
@@ -86,6 +97,7 @@ public class UserProfileService {
                 .timelineFrom(entity.getTimeLine().getFrom())
                 .timelineTo(entity.getTimeLine().getTo())
                 .processDate(entity.getProcessDate().toLocalDate())
+                .seedMoney(entity.getTimeLine().getSeedMoney())
                 .build();
     }
 }
