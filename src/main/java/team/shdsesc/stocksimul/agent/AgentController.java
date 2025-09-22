@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,6 +24,12 @@ public class AgentController {
                 .map(response -> {
                     log.info("Predict response: {}", response);
                     return ResponseEntity.ok(response);
+                })
+                .doOnError(error -> log.error("Predict 처리 중 오류 발생: {}", error.getMessage(), error))
+                .onErrorResume(error -> {
+                    log.error("Predict API 오류 - 요청: {}, 오류: {}", requestDTO, error.getMessage(), error);
+                    // 글로벌 예외 처리기가 처리하도록 예외를 다시 던짐
+                    return Mono.error(error);
                 });
     }
 
