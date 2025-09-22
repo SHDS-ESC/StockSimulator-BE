@@ -42,9 +42,18 @@ public class StockRedisDAO {
             return List.of();
         }
 
-        return symbols.stream()
-                .map(symbol -> getStock(symbol.toString()))
-                .filter(stock -> stock != null)
+        List<String> keys = symbols.stream()
+                .map(sym -> STOCK_KEY_PREFIX + sym.toString())
+                .collect(Collectors.toList());
+
+        List<Object> values = redisTemplate.opsForValue().multiGet(keys);
+        if (values == null || values.isEmpty()) {
+            return List.of();
+        }
+
+        return values.stream()
+                .filter(v -> v instanceof RealTimeStockDTO)
+                .map(v -> (RealTimeStockDTO) v)
                 .collect(Collectors.toList());
     }
 

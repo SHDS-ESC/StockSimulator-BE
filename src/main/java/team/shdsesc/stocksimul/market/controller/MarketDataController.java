@@ -124,10 +124,22 @@ public class MarketDataController {
     }
 
     @GetMapping("/redis/stocks")
-    public ResponseEntity<List<RealTimeStockDTO>> getRedisStocks() {
+    public ResponseEntity<List<RealTimeStockDTO>> getRedisStocks(@RequestHeader(value = "If-None-Match", required = false) String ifNoneMatch) {
         try {
             List<RealTimeStockDTO> stocks = stockRedisDAO.getAllStocks();
-            return ResponseEntity.ok(stocks);
+
+            // ETag: 간단히 리스트 크기 + 최근 시간 기반 (실서비스라면 스케줄러 갱신 타임스탬프 사용 권장)
+            String etag = "\"stocks-" + stocks.size() + "\"";
+            if (etag.equals(ifNoneMatch)) {
+                return ResponseEntity.status(304)
+                        .eTag(etag)
+                        .build();
+            }
+
+            return ResponseEntity.ok()
+                    .eTag(etag)
+                    .header("Cache-Control", "public, max-age=1140") // 19분
+                    .body(stocks);
         } catch (Exception e) {
             log.warn("Redis 조회 실패: {}", e.getMessage());
             if (mockOnRedisFail) {
@@ -137,7 +149,10 @@ public class MarketDataController {
                         List<RealTimeStockDTO> mockStocks = response.getTickers().stream()
                                 .map(this::generateMockStockData)
                                 .collect(Collectors.toList());
-                        return ResponseEntity.ok(mockStocks);
+                        return ResponseEntity.ok()
+                                .eTag("\"stocks-" + mockStocks.size() + "\"")
+                                .header("Cache-Control", "public, max-age=600")
+                                .body(mockStocks);
                     }
                     return ResponseEntity.ok(Collections.emptyList());
                 } catch (Exception dbError) {
