@@ -206,6 +206,105 @@ public class DbMarketService {
         return resp;
     }
 
+    /**
+     * 휴장일 자동 스킵을 포함한 스냅샷 페이지 응답.
+     * 요청된 날짜에 데이터가 없으면 앞으로 하루씩 이동하며 데이터가 있는 첫 날짜를 effectiveDate로 사용.
+     * 최대 maxForwardDays까지만 탐색.
+     */
+    public java.util.Map<String, Object> getSnapshotPageWithSkip(LocalDate requested, Integer page, Integer size, String sort, String symbolsCsv, int maxForwardDays) {
+        LocalDate effective = requested;
+        int skipped = 0;
+        List<java.util.Map<String, Object>> rows = getSnapshotRows(effective);
+        while ((rows == null || rows.isEmpty()) && skipped < Math.max(0, maxForwardDays)) {
+            effective = effective.plusDays(1);
+            skipped++;
+            rows = getSnapshotRows(effective);
+        }
+
+        // sort parsing: key,direction (동일 로직 재사용)
+        String sortKey = "changePercentValue";
+        boolean desc = true;
+        if (sort != null && !sort.isBlank()) {
+            String[] parts = sort.split(",");
+            String k = parts[0].trim();
+            String d = parts.length > 1 ? parts[1].trim().toLowerCase() : "desc";
+            switch (k) {
+                case "name": sortKey = "name"; break;
+                case "price": sortKey = "priceValue"; break;
+                case "change": sortKey = "changeValue"; break;
+                case "changePercent": sortKey = "changePercentValue"; break;
+                default: break;
+            }
+            desc = !"asc".equals(d);
+        }
+
+        if (rows == null) rows = new java.util.ArrayList<>();
+        final String sortKeyFinal = sortKey;
+        final boolean descFinal = desc;
+        rows.sort((a, b) -> {
+            Object va = a.get(sortKeyFinal);
+            Object vb = b.get(sortKeyFinal);
+            int cmp;
+            if (va instanceof Number && vb instanceof Number) {
+                cmp = Double.compare(((Number) va).doubleValue(), ((Number) vb).doubleValue());
+            } else {
+                cmp = String.valueOf(va).compareToIgnoreCase(String.valueOf(vb));
+            }
+            return descFinal ? -cmp : cmp;
+        });
+
+        // 선택 심볼 필터
+        if (symbolsCsv != null && !symbolsCsv.isBlank()) {
+            final java.util.Set<String> pick = java.util.Arrays.stream(symbolsCsv.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(java.util.stream.Collectors.toSet());
+            if (!pick.isEmpty()) {
+                final java.util.Set<String> pickFinal = pick;
+                rows = rows.stream().filter(r -> pickFinal.contains(String.valueOf(r.get("symbol")))).toList();
+            }
+        }
+
+        int total = rows.size();
+        int p = (page == null || page < 1) ? 1 : page;
+        int s = (size == null || size < 1) ? 6 : size;
+        int from = Math.min((p - 1) * s, Math.max(total - 1, 0));
+        int to = Math.min(from + s, total);
+        List<java.util.Map<String, Object>> pageRows = rows.subList(from, to);
+
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("status", "ok");
+        resp.put("s", "ok");
+        resp.put("requestedDate", requested != null ? requested.toString() : null);
+        resp.put("effectiveDate", effective != null ? effective.toString() : null);
+        resp.put("skippedDays", skipped);
+        resp.put("total", total);
+        resp.put("page", p);
+        resp.put("size", s);
+        resp.put("rows", pageRows);
+        return resp;
+    }
+
+    /**
+     * 다음 유효 거래일 계산 (스냅샷 데이터가 존재하는 날짜).
+     */
+    public java.util.Map<String, Object> findNextEffectiveDate(LocalDate start, int maxForwardDays) {
+        LocalDate effective = start;
+        int skipped = 0;
+        List<java.util.Map<String, Object>> rows = getSnapshotRows(effective);
+        while ((rows == null || rows.isEmpty()) && skipped < Math.max(0, maxForwardDays)) {
+            effective = effective.plusDays(1);
+            skipped++;
+            rows = getSnapshotRows(effective);
+        }
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("requestedDate", start != null ? start.toString() : null);
+        resp.put("effectiveDate", effective != null ? effective.toString() : null);
+        resp.put("skippedDays", skipped);
+        resp.put("hasData", rows != null && !rows.isEmpty());
+        return resp;
+    }
+
     // getSnapshotRowsPage 제거됨 (미사용)
 
     /**
