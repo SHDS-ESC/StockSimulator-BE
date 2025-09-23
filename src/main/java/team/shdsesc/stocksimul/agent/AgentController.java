@@ -66,6 +66,22 @@ public class AgentController {
 
         return ResponseEntity.ok(PredictResponseDTO.builder()
                 .ticker("AAPL")
+                .lastPrice(229.65)
+                .predictionDates(Arrays.asList(
+                    "2025-09-16",
+                    "2025-09-17", 
+                    "2025-09-18"
+                ))
+                .pricePredictions(Arrays.asList(
+                    227.30,
+                    225.15,
+                    223.80
+                ))
+                .returnPredictions(Arrays.asList(
+                    -1.02,
+                    -1.96,
+                    -2.54       
+                ))
                 .chartFull("sample_chart_full_base64_data")
                 .chart30d("sample_chart_30d_base64_data")
                 .investmentAnalysis(investmentAnalysis)
