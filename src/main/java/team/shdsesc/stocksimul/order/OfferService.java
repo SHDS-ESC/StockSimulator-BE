@@ -1,6 +1,7 @@
 package team.shdsesc.stocksimul.order;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import team.shdsesc.stocksimul.holdings.HoldingsEntity;
 import team.shdsesc.stocksimul.holdings.HoldingsRepository;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class OfferService {
     private final OfferRepository offerRepository;
     private final UserProfileRepository userProfileRepository;
@@ -59,13 +61,14 @@ public class OfferService {
                 ? price + tPrice // 기존 총합 금액 + 토탈 금액
                 : price - tPrice;// 기촌 총합 금액 - 토탈 금액
 
-        double remainCashBalance = userProfile.getCashBalance() - totalPrice;
+        double remainCashBalance = dto.type == OfferType.BUY ?
+                userProfile.getCashBalance() - tPrice : userProfile.getCashBalance() + tPrice;
+
+        log.info("매매/매도" + dto.type + totalPrice + " " + userProfile.getCashBalance() + " " + price + " " + tPrice);
 
         // 수량이 0보다 작아지면 실패
         if (quantity < 0) {
             throw new RuntimeException("quantity less than 0");
-        } else if (totalPrice < 0) {
-            throw new RuntimeException("totalPrice less than 0");
         } else if (remainCashBalance < 0) {
             throw new RuntimeException("remainCashBalance less than 0");
         }
