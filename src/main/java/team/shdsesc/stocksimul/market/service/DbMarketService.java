@@ -157,6 +157,7 @@ public class DbMarketService {
                 case "price": sortKey = "priceValue"; break;
                 case "change": sortKey = "changeValue"; break;
                 case "changePercent": sortKey = "changePercentValue"; break;
+                case "volume": sortKey = "volumeValue"; break;
                 default: break;
             }
             desc = !"asc".equals(d);
@@ -233,6 +234,7 @@ public class DbMarketService {
                 case "price": sortKey = "priceValue"; break;
                 case "change": sortKey = "changeValue"; break;
                 case "changePercent": sortKey = "changePercentValue"; break;
+                case "volume": sortKey = "volumeValue"; break;
                 default: break;
             }
             desc = !"asc".equals(d);
@@ -320,7 +322,7 @@ public class DbMarketService {
         LocalDateTime selEnd = date.atTime(23, 59, 59);
         LocalDateTime prevStart = prev.atStartOfDay();
         LocalDateTime prevEnd = prev.atTime(23, 59, 59);
-        // 대량 쿼리로 (stockId, date, close) 한번에 로드
+        // 대량 쿼리로 (stockId, date, close, volume) 한번에 로드
         // 빈 결과 방지: 기간에 데이터가 없으면 최근 range를 기준으로 계산
         List<Object[]> tuples = reportRepository.findClosesByRange(prevStart, selEnd);
         if (tuples == null || tuples.isEmpty()) {
@@ -343,10 +345,12 @@ public class DbMarketService {
         }
         java.util.Map<Long, double[]> closeMap = new java.util.HashMap<>();
         if (tuples == null) tuples = java.util.Collections.emptyList();
+        java.util.Map<Long, Long> volumeMap = new java.util.HashMap<>();
         for (Object[] t : tuples) {
             Long sid = (Long) t[0];
             LocalDateTime dt = (LocalDateTime) t[1];
             Double close = (Double) t[2];
+            Long vol = (Long) t[3];
             double[] arr = closeMap.computeIfAbsent(sid, k -> new double[]{Double.NaN, Double.NaN});
             if (!dt.isAfter(prevEnd)) {
                 // 전일 종가(마지막 값)
@@ -354,6 +358,8 @@ public class DbMarketService {
             } else if (!dt.isBefore(selStart)) {
                 // 당일 종가(첫 값)
                 if (Double.isNaN(arr[1])) arr[1] = close;
+                // 당일 첫 레코드의 거래량 사용 (일봉 누적과 다를 수 있음)
+                if (!volumeMap.containsKey(sid)) volumeMap.put(sid, vol);
             }
         }
 
@@ -368,12 +374,12 @@ public class DbMarketService {
             double selClose = arr[1];
             if (Double.isNaN(prevClose) || Double.isNaN(selClose)) continue;
 
-            rows.add(buildSnapshotRow(s, prevClose, selClose));
+            rows.add(buildSnapshotRow(s, prevClose, selClose, volumeMap.getOrDefault(stockId, 0L)));
         }
         return rows;
     }
 
-    private static java.util.Map<String, Object> buildSnapshotRow(Stock stock, double prevClose, double selClose) {
+    private static java.util.Map<String, Object> buildSnapshotRow(Stock stock, double prevClose, double selClose, Long volume) {
         double chg = selClose - prevClose;
         double pct = prevClose != 0.0 ? (chg / prevClose) * 100.0 : 0.0;
         java.util.Map<String, Object> row = new HashMap<>();
@@ -383,10 +389,12 @@ public class DbMarketService {
         row.put("priceValue", selClose);
         row.put("changeValue", chg);
         row.put("changePercentValue", pct);
+        row.put("volumeValue", volume == null ? 0L : volume);
         // formatted strings for display
         row.put("price", String.format("$%.2f", selClose));
         row.put("change", String.format("%s%.2f", chg >= 0 ? "+" : "", chg));
         row.put("changePercent", String.format("%s%.2f%%", pct >= 0 ? "+" : "", pct));
+        row.put("volume", volume == null ? "0" : String.valueOf(volume));
         return row;
     }
 

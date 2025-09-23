@@ -24,8 +24,8 @@ public interface ReportRepository extends JpaRepository<Report, ReportId> {
 
     // 미사용: 다종목 범위 조회 메서드는 필요 시 복원
 
-    // 대량 조회: 전체 종목의 특정 기간 종가를 한 번에 조회 (stockId, date, close)
-    @Query("select r.id.stockId, r.id.date, r.close from Report r where (:from is null or r.id.date >= :from) and (:to is null or r.id.date <= :to) order by r.id.stockId asc, r.id.date asc")
+    // 대량 조회: 전체 종목의 특정 기간 종가/거래량을 한 번에 조회 (stockId, date, close, volume)
+    @Query("select r.id.stockId, r.id.date, r.close, r.volume from Report r where (:from is null or r.id.date >= :from) and (:to is null or r.id.date <= :to) order by r.id.stockId asc, r.id.date asc")
     List<Object[]> findClosesByRange(
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to
