@@ -19,6 +19,17 @@ public class HoldingsService {
     private static final String STOCK_IMG_LINK = "https://financialmodelingprep.com/image-stock/";
     private static final String STOCK_IMG_EXTENSION = ".png";
 
+    public PortfolioResponseDTO getPortfolio(Long usersProfileId, String currentDate){
+        // 보유 주식 리스트
+        HoldingsResponseDTO holdingsList = getHoldingsList(usersProfileId, currentDate);
+        // 보유 주식 변환 리스트
+        List<HoldingsDTO> holdingsDTOList = holdingsList.getHoldingsResponseDTOS();
+
+        return PortfolioResponseDTO.builder()
+                .holdingsDTOList(holdingsDTOList)
+                .build();
+    }
+
     public HoldingsDTO toHoldingsResponseDTOS(HoldingsEntity holdingsEntity, LocalDateTime date) {
         // 현재 주가 (1주당)
         Double currentPrice = reportRepository.findClosesPrice(date, holdingsEntity.getStock().getStockId());
@@ -56,7 +67,7 @@ public class HoldingsService {
                 .map(entity -> toHoldingsResponseDTOS(entity, formatUtil.localDateTimeFormatter(currentDate)))
                 .toList();
         double totalCurrentPrice = holdingsDTOList.stream()
-                .mapToDouble(HoldingsDTO::getPrice) // 필드를 꺼낸다
+                .mapToDouble(HoldingsDTO::getPrice)
                 .sum();
 
         return HoldingsResponseDTO.builder()
