@@ -27,7 +27,7 @@ public class TimeLineEntity{
 
     private String name;
     private String description;
-    private long seedMoney;
+    private Double seedMoney;
     private int level;
     private int type;
 }

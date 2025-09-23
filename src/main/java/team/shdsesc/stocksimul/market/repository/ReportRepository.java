@@ -31,4 +31,10 @@ public interface ReportRepository extends JpaRepository<Report, ReportId> {
             @Param("to") LocalDateTime to
     );
 
+    @Query("select r.close from Report r where r.id.stockId = :stockId and  r.id.date = :from")
+    Double findClosesPrice(
+            @Param("from") LocalDateTime from,
+            @Param("stockId") Long stockId
+    );
+
 }
