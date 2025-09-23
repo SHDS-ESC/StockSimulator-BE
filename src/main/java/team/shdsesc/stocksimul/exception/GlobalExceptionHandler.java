@@ -5,8 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -17,10 +16,10 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     /**
-     * 일반적인 예외 처리 (Reactive)
+     * 일반적인 예외 처리 (Spring MVC)
      */
     @ExceptionHandler(Exception.class)
-    public Mono<ResponseEntity<Map<String, Object>>> handleGenericException(Exception ex, ServerWebExchange exchange) {
+    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex, WebRequest request) {
         log.error("예외 발생: {}", ex.getMessage(), ex);
         
         Map<String, Object> errorResponse = createErrorResponse(
@@ -29,14 +28,14 @@ public class GlobalExceptionHandler {
             HttpStatus.INTERNAL_SERVER_ERROR.value()
         );
         
-        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     /**
      * IllegalArgumentException 처리
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public Mono<ResponseEntity<Map<String, Object>>> handleIllegalArgumentException(IllegalArgumentException ex, ServerWebExchange exchange) {
+    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
         log.warn("잘못된 요청 파라미터: {}", ex.getMessage());
         
         Map<String, Object> errorResponse = createErrorResponse(
@@ -45,14 +44,14 @@ public class GlobalExceptionHandler {
             HttpStatus.BAD_REQUEST.value()
         );
         
-        return Mono.just(ResponseEntity.badRequest().body(errorResponse));
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 
     /**
      * RuntimeException 처리
      */
     @ExceptionHandler(RuntimeException.class)
-    public Mono<ResponseEntity<Map<String, Object>>> handleRuntimeException(RuntimeException ex, ServerWebExchange exchange) {
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex, WebRequest request) {
         log.error("런타임 예외 발생: {}", ex.getMessage(), ex);
         
         Map<String, Object> errorResponse = createErrorResponse(
@@ -61,7 +60,7 @@ public class GlobalExceptionHandler {
             HttpStatus.INTERNAL_SERVER_ERROR.value()
         );
         
-        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     /**

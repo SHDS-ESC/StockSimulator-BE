@@ -1,13 +1,14 @@
 package team.shdsesc.stocksimul.agent;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @Setter
 @ToString(exclude = {"chartFull", "chart30d"})
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class PredictResponseDTO {
 
     @JsonProperty("ticker")
