@@ -30,7 +30,6 @@ public class AgentService {
 //                    return Mono.just(new PredictResponseDTO());
                     return Mono.error(throwable);
                 });
-
     }
 
 }

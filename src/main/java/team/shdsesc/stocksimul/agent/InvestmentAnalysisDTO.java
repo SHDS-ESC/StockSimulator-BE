@@ -1,15 +1,16 @@
 package team.shdsesc.stocksimul.agent;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
 @Setter
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class InvestmentAnalysisDTO {
 
     @JsonProperty("recommendation")
@@ -22,10 +23,10 @@ public class InvestmentAnalysisDTO {
     private String confidence;
 
     @JsonProperty("score")
-    private int score;
+    private Integer score;
 
     @JsonProperty("max_score")
-    private int maxScore;
+    private Integer maxScore;
 
     @JsonProperty("signals")
     private List<String> signals;

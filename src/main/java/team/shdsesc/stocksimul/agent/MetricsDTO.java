@@ -1,24 +1,25 @@
 package team.shdsesc.stocksimul.agent;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @Setter
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class MetricsDTO {
 
     @JsonProperty("current_price")
-    private double currentPrice;
+    private Double currentPrice;
 
     @JsonProperty("predicted_avg_price")
-    private double predictedAvgPrice;
+    private Double predictedAvgPrice;
 
     @JsonProperty("expected_total_return")
-    private double expectedTotalReturn;
+    private Double expectedTotalReturn;
 
     @JsonProperty("upside_probability")
-    private double upsideProbability;
+    private Double upsideProbability;
 }
