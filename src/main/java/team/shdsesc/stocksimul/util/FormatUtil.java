@@ -10,12 +10,16 @@ import java.time.format.DateTimeFormatter;
 
 @Component
 public class FormatUtil {
-    public Double changePriceFormatter(Double price){
-        BigDecimal value = BigDecimal.valueOf(price).setScale(3, RoundingMode.FLOOR);
-        return value.doubleValue();
+    public Double changePriceFormatter(Double price) {
+        try {
+            BigDecimal value = BigDecimal.valueOf(price).setScale(3, RoundingMode.FLOOR);
+            return value.doubleValue();
+        } catch (Exception e) {
+            return 0.0;
+        }
     }
 
-    public LocalDateTime localDateTimeFormatter(String curDate){
+    public LocalDateTime localDateTimeFormatter(String curDate) {
         LocalDate date = LocalDate.parse(curDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         return date.atStartOfDay();
     }
