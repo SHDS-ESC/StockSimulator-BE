@@ -67,7 +67,7 @@ public class AgentController {
         return ResponseEntity.ok(PredictResponseDTO.builder()
                 .ticker("AAPL")
                 .chartFull("sample_chart_full_base64_data")
-                .chart30d("sample_chart_30d_base64_data")
+                .chartBrief("sample_chart_30d_base64_data")
                 .investmentAnalysis(investmentAnalysis)
                 .build());
     }

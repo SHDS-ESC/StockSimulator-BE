@@ -5,7 +5,7 @@ import lombok.*;
 
 @Getter
 @Setter
-@ToString(exclude = {"chartFull", "chart30d"})
+@ToString(exclude = {"chartFull", "chartBrief"})
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -18,8 +18,8 @@ public class PredictResponseDTO {
     @JsonProperty("chart_full")
     private String chartFull;
 
-    @JsonProperty("chart_30d")
-    private String chart30d;
+    @JsonProperty("chart_brief")
+    private String chartBrief;
 
     @JsonProperty("investment_analysis")
     private InvestmentAnalysisDTO investmentAnalysis;
