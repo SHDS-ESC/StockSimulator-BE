@@ -34,8 +34,8 @@ public class HoldingsEntity {
     @Column(name = "quantity")
     private Long quantity;
 
-    @Column(name = "price")
-    private Double price;
+    @Column(name = "total_price")
+    private Double totalPrice;
 
     @LastModifiedDate
     @Column(name = "mod_date")
