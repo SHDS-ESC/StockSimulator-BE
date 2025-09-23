@@ -5,15 +5,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class HoldingsResponseDTO {
-    private String ticker;
-    private String name;
-    private Double price;
-    private Double change;
-    private Double changeAmount;
-    private String logo;
+    private List<HoldingsDTO> holdingsResponseDTOS;
+    private Double totalCurrentPrice;
 }

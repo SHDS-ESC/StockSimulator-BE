@@ -15,9 +15,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class UserProfileDTO {
     private Long id;
-    private Long totalInvested;
-    private Long totalAssets;
-    private Long cashBalance;
+    private Double totalInvested;
+    private Double totalAssets;
+    private Double cashBalance;
     @Builder.Default
     private String nickname ="";
     @Builder.Default
@@ -29,4 +29,5 @@ public class UserProfileDTO {
     private LocalDateTime timelineFrom;
     private LocalDateTime timelineTo;
     private LocalDate processDate;
+    private Double seedMoney;
 }
