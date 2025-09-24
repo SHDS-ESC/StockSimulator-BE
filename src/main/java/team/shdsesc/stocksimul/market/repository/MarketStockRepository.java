@@ -22,6 +22,7 @@ public interface MarketStockRepository extends JpaRepository<Stock, Long> {
     @Query("select s.stockId from Stock s where s.ticker = :ticker")
     Optional<Long> findByTickerId(@Param("ticker") String ticker);
 
+
 }
 
 
