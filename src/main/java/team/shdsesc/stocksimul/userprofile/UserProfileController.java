@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import team.shdsesc.stocksimul.holdings.HoldingsService;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ import java.util.List;
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
+    private final HoldingsService holdingsService;
 
     @GetMapping("/timelines")
     @Operation(summary = "타임라인 목록 조회", description = "타임라인 목록을 조회합니다.")
@@ -65,8 +67,7 @@ public class UserProfileController {
     public ResponseEntity<?> updateProcessDate(@RequestBody UpdateUserProfileProcessDateDTO userProfileProcessDateDTO) {
         userProfileService.updateProcessDate(userProfileProcessDateDTO.getUserProfileId(), userProfileProcessDateDTO.getProcessDate());
         return ResponseEntity
-                .ok()
-                .build();
+                .ok(holdingsService.getPortfolio(userProfileProcessDateDTO.getUserProfileId(), userProfileProcessDateDTO.getProcessDate()));
     }
 }
 

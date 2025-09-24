@@ -23,6 +23,17 @@ public class HoldingsRepositoryCustomImpl implements HoldingsRepositoryCustom {
     }
 
     @Override
+    public Double getHoldingsTotalPrice(Long usersProfileId) {
+        QHoldingsEntity h = QHoldingsEntity.holdingsEntity;
+
+        return queryFactory
+                .select(h.totalPrice.sum().coalesce(0.0))
+                .from(h)
+                .where(h.userProfile.usersProfileId.eq(usersProfileId))
+                .fetchOne();
+    }
+
+    @Override
     public Optional<HoldingsEntity> getHoldingsStockAmount(Long usersProfileId, Long stockId) {
         QHoldingsEntity holdingsEntity = QHoldingsEntity.holdingsEntity;
 
@@ -38,11 +49,12 @@ public class HoldingsRepositoryCustomImpl implements HoldingsRepositoryCustom {
 
     @Override
     @Transactional
-    public void updateHoldingStockAmount(Long usersProfileId, Long stockId, Long quantity) {
+    public void updateHoldingStockAmount(Long usersProfileId, Long stockId, Long quantity, Double totalPrice) {
         QHoldingsEntity holdingsEntity = QHoldingsEntity.holdingsEntity;
 
         queryFactory.update(holdingsEntity)
                 .set(holdingsEntity.quantity, quantity)
+                .set(holdingsEntity.totalPrice, totalPrice)
                 .where(holdingsEntity.userProfile.usersProfileId.eq(usersProfileId)
                         .and(holdingsEntity.stock.stockId.eq(stockId)))
                 .execute();

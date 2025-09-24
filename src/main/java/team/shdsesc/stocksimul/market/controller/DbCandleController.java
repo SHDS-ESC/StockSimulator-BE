@@ -95,7 +95,8 @@ public class DbCandleController {
     ) {
         try {
             LocalDate date = LocalDate.parse(dateStr);
-            java.util.Map<String, Object> pageResp = dbMarketService.getSnapshotPage(date, page, size, sort, symbolsCsv);
+            // 휴장일 자동 스킵이 포함된 응답 사용 (기본 30일 범위)
+            java.util.Map<String, Object> pageResp = dbMarketService.getSnapshotPageWithSkip(date, page, size, sort, symbolsCsv, 30);
             return ResponseEntity.ok(pageResp);
         } catch (Exception e) {
             java.util.Map<String, Object> resp = new java.util.HashMap<>();
@@ -104,6 +105,17 @@ public class DbCandleController {
             resp.put("rows", java.util.List.of());
             return ResponseEntity.ok(resp);
         }
+    }
+
+    // 다음 유효 거래일 조회 API
+    @GetMapping("/next-trading-day")
+    public ResponseEntity<Map<String, Object>> getNextTradingDay(
+            @RequestParam("date") String dateStr,
+            @RequestParam(value = "max", required = false, defaultValue = "30") Integer max
+    ) {
+        LocalDate date = LocalDate.parse(dateStr);
+        java.util.Map<String, Object> r = dbMarketService.findNextEffectiveDate(date, max != null ? max : 30);
+        return ResponseEntity.ok(r);
     }
 }
 

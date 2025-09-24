@@ -27,7 +27,11 @@ public class UserProfileEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private TimeLineEntity timeLine;
 
-    private Long cashBalance;
+    private Double cashBalance;
     private LocalDateTime processDate;
     private String nickname;
+
+    public void setUsersCashBalance(Double cashBalance) {
+        this.cashBalance = cashBalance;
+    }
 }

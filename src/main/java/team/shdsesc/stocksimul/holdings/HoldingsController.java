@@ -7,18 +7,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/holdings")
 @RequiredArgsConstructor
 public class HoldingsController {
     private final HoldingsService holdingsService;
 
-    @GetMapping("/stocks/{usersProfileId}")
-    ResponseEntity<List<HoldingsResponseDTO>> getHoldingsStockList(@PathVariable Long usersProfileId){
+    @GetMapping("/stocks/{usersProfileId}/{setCurrentDate}")
+    ResponseEntity<HoldingsResponseDTO> getHoldingsStockList(@PathVariable Long usersProfileId, @PathVariable String setCurrentDate) {
         return ResponseEntity
                 .ok()
-                .body(holdingsService.getHoldingsList(usersProfileId));
+                .body(holdingsService.getHoldingsList(usersProfileId, setCurrentDate));
     }
 }

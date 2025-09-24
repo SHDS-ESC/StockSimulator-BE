@@ -11,7 +11,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HoldingsResponseDTO {
-    private List<HoldingsDTO> holdingsResponseDTOS;
-    private Double totalCurrentPrice;
+public class PortfolioResponseDTO {
+    private List<HoldingsDTO> holdingsDTOList;
 }
