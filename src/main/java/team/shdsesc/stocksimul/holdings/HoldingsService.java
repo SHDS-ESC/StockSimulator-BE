@@ -19,35 +19,45 @@ public class HoldingsService {
     private static final String STOCK_IMG_LINK = "https://financialmodelingprep.com/image-stock/";
     private static final String STOCK_IMG_EXTENSION = ".png";
 
+    public PortfolioResponseDTO getPortfolio(Long usersProfileId, String currentDate){
+        // 보유 주식 리스트
+        HoldingsResponseDTO holdingsList = getHoldingsList(usersProfileId, currentDate);
+        // 보유 주식 변환 리스트
+        List<HoldingsDTO> holdingsDTOList = holdingsList.getHoldingsResponseDTOS();
+
+        return PortfolioResponseDTO.builder()
+                .holdingsDTOList(holdingsDTOList)
+                .build();
+    }
+
     public HoldingsDTO toHoldingsResponseDTOS(HoldingsEntity holdingsEntity, LocalDateTime date) {
+        // 현재 주가 (1주당)
+        Double currentPrice = reportRepository.findClosesPrice(date, holdingsEntity.getStock().getStockId());
 
-        // 금일 주식 가격 (1주)
-        Double avgPrice = reportRepository.findClosesPrice(date, holdingsEntity.getStock().getStockId());
+        // 구매시 총 투자금액
+        Double totalInvested = holdingsEntity.getTotalPrice();
 
-        // 가저온 실 구매가
-        Double price = holdingsEntity.getTotalPrice();
-
-        // 구매량
+        // 보유 수량
         Long quantity = holdingsEntity.getQuantity();
 
-        // 주당 총 주가 (금일 기준 반영)
-        Double totalPrice = formatUtil.changePriceFormatter(quantity * avgPrice);
+        // 현재 총 평가금액
+        Double currentTotalValue = formatUtil.changePriceFormatter(quantity * currentPrice);
 
-        // 등락률
-        double changeRate = formatUtil.changePriceFormatter(totalPrice / price - 1);
-        // 등락가
-        double changeAmount = formatUtil.changePriceFormatter(totalPrice - price);
+        // 평가손익 (현재가치 - 투자금액)
+        Double profitLoss = formatUtil.changePriceFormatter(currentTotalValue - totalInvested);
+
+        // 수익률 (%) = (평가손익 / 투자금액) * 100
+        Double returnRate = formatUtil.changePriceFormatter((profitLoss / totalInvested) * 100);
 
         return HoldingsDTO.builder()
                 .ticker(holdingsEntity.getStock().getTicker())
                 .name(holdingsEntity.getStock().getName())
-                .price(totalPrice)
+                .price(currentTotalValue)  // 현재 총 평가금액
                 .quantity(holdingsEntity.getQuantity())
-                .change(changeRate)
-                .changeAmount(changeAmount)
+                .change(returnRate)       // 수익률 (%)
+                .changeAmount(profitLoss) // 평가손익 ($)
                 .logo(STOCK_IMG_LINK + holdingsEntity.getStock().getTicker() + STOCK_IMG_EXTENSION)
                 .build();
-
     }
 
     HoldingsResponseDTO getHoldingsList(Long usersProfileId, String currentDate) {
@@ -57,7 +67,7 @@ public class HoldingsService {
                 .map(entity -> toHoldingsResponseDTOS(entity, formatUtil.localDateTimeFormatter(currentDate)))
                 .toList();
         double totalCurrentPrice = holdingsDTOList.stream()
-                .mapToDouble(HoldingsDTO::getPrice) // 필드를 꺼낸다
+                .mapToDouble(HoldingsDTO::getPrice)
                 .sum();
 
         return HoldingsResponseDTO.builder()
