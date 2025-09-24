@@ -295,40 +295,25 @@ public class RedisController {
                 for (int i = 0; i < batchTickers.size(); i++) {
                     String ticker = batchTickers.get(i);
                     try {
-                        // 실제 API 호출 (재시도/헤더/로그 포함)
-                        String quoteJson = fetchQuoteRaw(ticker);
-                        if (quoteJson == null || quoteJson.isBlank()) {
-                            failCount++;
-                            if (verboseLog) log.warn("빈 응답: {}", ticker);
-                            continue;
-                        }
-
+                        // 실제 API 호출
+                        String quoteJson = restClient
+                                .get()
+                                .uri((UriBuilder b) -> b
+                                        .path("/quote")
+                                        .queryParam("symbol", ticker)
+                                        .queryParam("token", finnhubApiKey)
+                                        .build())
+                                .header("Accept", "application/json")
+                                .header("Accept-Encoding", "identity")
+                                .retrieve()
+                                .body(String.class);
+                        
                         RealTimeStockDTO realStock = parseQuoteToStockDTO(ticker, quoteJson);
-                        if (realStock == null) {
-                            // 최소한 현재가(c)만이라도 복구 시도
-                            Double c = extractPriceC(quoteJson);
-                            if (c != null && !Double.isNaN(c)) {
-                                String price = String.format("$%.2f", c);
-                                realStock = RealTimeStockDTO.builder()
-                                        .symbol(ticker)
-                                        .name(ticker)
-                                        .price(price)
-                                        .change("+0.00")
-                                        .changePercent("+0.00%")
-                                        .volume("0")
-                                        .logo("📈")
-                                        .build();
-                            }
-                        }
                         if (realStock != null) {
                             stockRedisDAO.saveStock(realStock);
                             successCount++;
                         } else {
                             failCount++;
-                            if (verboseLog) {
-                                String snippet = quoteJson.substring(0, Math.min(80, quoteJson.length()));
-                                log.warn("파싱 실패: {} snippet={}", ticker, snippet);
-                            }
                         }
                     } catch (Exception e) {
                         failCount++;
@@ -374,69 +359,6 @@ public class RedisController {
     }
 
     // 헬퍼 메서드들
-    private String fetchQuoteRaw(String symbol) {
-        try {
-            org.springframework.http.ResponseEntity<String> fh = restClient
-                    .get()
-                    .uri((UriBuilder b) -> b
-                            .path("/quote")
-                            .queryParam("symbol", symbol)
-                            .queryParam("token", finnhubApiKey)
-                            .build())
-                    .header("Accept", "application/json")
-                    .header("Accept-Encoding", "identity")
-                    .retrieve()
-                    .toEntity(String.class);
-            String raw = fh.getBody();
-            // 비정상으로 보이면 1회 재시도
-            boolean broken = (raw == null) || raw.trim().length() < 5 || !raw.contains("}");
-            if (broken) {
-                org.springframework.http.ResponseEntity<String> retry = restClient
-                        .get()
-                        .uri((UriBuilder b) -> b
-                                .path("/quote")
-                                .queryParam("symbol", symbol)
-                                .queryParam("token", finnhubApiKey)
-                                .queryParam("_", String.valueOf(System.currentTimeMillis()))
-                                .build())
-                        .header("Accept", "application/json")
-                        .header("Accept-Encoding", "identity")
-                        .retrieve()
-                        .toEntity(String.class);
-                String raw2 = retry.getBody();
-                return raw2 != null ? raw2 : raw;
-            }
-            return raw;
-        } catch (Exception e) {
-            if (verboseLog) { log.warn("quote fetch error {}: {}", symbol, e.getMessage()); }
-            return null;
-        }
-    }
-
-    private Double extractPriceC(String json) {
-        if (json == null) return null;
-        try {
-            // 빠른 경량 파싱 시도
-            JsonNode root = objectMapper.readTree(json);
-            if (root.has("c")) return root.path("c").asDouble(Double.NaN);
-        } catch (Exception ignore) {}
-        try {
-            // 매우 비정상 문자열에서 숫자만 추출 시도 ("\"c\":123.45")
-            int idx = json.indexOf("\"c\"");
-            if (idx >= 0) {
-                int colon = json.indexOf(":", idx);
-                if (colon > idx) {
-                    int end = colon + 1;
-                    while (end < json.length() && (Character.isWhitespace(json.charAt(end)) || json.charAt(end) == '"')) end++;
-                    int stop = end;
-                    while (stop < json.length() && (Character.isDigit(json.charAt(stop)) || json.charAt(stop) == '.' || json.charAt(stop) == '-')) stop++;
-                    String num = json.substring(end, stop);
-                    if (!num.isBlank()) return Double.parseDouble(num);
-                }
-            }
-        } catch (Exception ignore) {}
-        return null;
-    }
     private RealTimeStockDTO parseQuoteToStockDTO(String symbol, String quoteJson) {
         try {
             JsonNode root = objectMapper.readTree(quoteJson);
