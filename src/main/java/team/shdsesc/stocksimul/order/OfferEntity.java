@@ -38,5 +38,8 @@ public class OfferEntity {
 
     @Column(name = "quantity", nullable = false)
     private Long quantity;
+
+    @Column(name = "price", nullable = false)
+    private Double price;
 }
 

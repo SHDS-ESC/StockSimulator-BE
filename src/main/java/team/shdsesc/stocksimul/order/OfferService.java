@@ -85,6 +85,7 @@ public class OfferService {
                 .stock(stock)
                 .type(dto.type)
                 .quantity(dto.quantity)
+                .price(dto.price)
                 .build();
     }
 
