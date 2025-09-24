@@ -93,7 +93,7 @@ public class NewsServiceImpl implements NewsService {
 
     // NewsServiceImpl.java
     @Override
-    @Scheduled(cron = "0 44 11 * * ?")
+    @Scheduled(cron = "0 00 09 * * ?")
     public void saveCrawledNews() {
         try {
             log.info("뉴스 크롤링 시작");
