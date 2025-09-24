@@ -33,28 +33,36 @@ public class AgentController {
 
     @PostMapping("/predict-sample")
     public ResponseEntity<PredictResponseDTO> predictSample() {
-        // 메트릭 데이터 (기존 필드만 사용)
+        // 메트릭 데이터 (전체 필드 포함)
         MetricsDTO metrics = MetricsDTO.builder()
                 .currentPrice(229.65)
                 .predictedAvgPrice(203.72)
+                .predictedMaxPrice(227.30)
+                .predictedMinPrice(203.72)
                 .expectedTotalReturn(-9.73)
+                .expectedAvgDailyReturn(-1.50)
+                .predictedVolatility(2.02)
                 .upsideProbability(0.0)
                 .build();
 
-        // 리스크 메트릭 데이터 (기존 필드만 사용)
+        // 리스크 메트릭 데이터 (전체 필드 포함)
         RiskMetricsDTO riskMetrics = RiskMetricsDTO.builder()
+                .historicalVolatilityAnnualized(42.66)
+                .predictedVolatility(2.26)
                 .var95(0.0487)
                 .maxExpectedLoss(-12.49)
+                .maxExpectedGain(0.15)
                 .estimatedSharpeRatio(-0.138)
                 .build();
 
-        // 투자 분석 데이터 (기존 필드만 사용)
+        // 투자 분석 데이터 (전체 필드 포함)
         InvestmentAnalysisDTO investmentAnalysis = InvestmentAnalysisDTO.builder()
                 .recommendation("매도 고려")
                 .action("SELL")
                 .confidence("MEDIUM")
                 .score(-3)
                 .maxScore(5)
+                .minScore(-5)
                 .signals(Arrays.asList(
                         "매우 낮은 수익률 기대 (-2% 미만)",
                         "매우 낮은 상승 확률 (30% 미만)",
@@ -66,25 +74,28 @@ public class AgentController {
 
         return ResponseEntity.ok(PredictResponseDTO.builder()
                 .ticker("AAPL")
+                .baseDate("2025-09-24")
                 .lastPrice(229.65)
-                .predictionDates(Arrays.asList(
-                    "2025-09-16",
-                    "2025-09-17", 
-                    "2025-09-18"
+                .returnPredictions(Arrays.asList(
+                    -1.02,
+                    -1.96,
+                    -2.54       
                 ))
                 .pricePredictions(Arrays.asList(
                     227.30,
                     225.15,
                     223.80
                 ))
-                .returnPredictions(Arrays.asList(
-                    -1.02,
-                    -1.96,
-                    -2.54       
+                .predictionDates(Arrays.asList(
+                    "2025-09-25",
+                    "2025-09-26", 
+                    "2025-09-27"
                 ))
-                .chartFull("sample_chart_full_base64_data")
-                .chart30d("sample_chart_30d_base64_data")
+                .trainDataCount(10030)
+                .featureCount(32)
                 .investmentAnalysis(investmentAnalysis)
+                .chartFull("sample_chart_full_base64_data")
+                .chartBrief("sample_chart_brief_base64_data")
                 .build());
     }
 
