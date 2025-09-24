@@ -19,8 +19,7 @@ public class NewsEntity {
     @Column(name = "news_id")
     private Long newsId;
 
-    @Column(name = "stock_id")
-    private String stockId;
+
     private String source;
 
     @Column(name = "time_published")
@@ -33,4 +32,8 @@ public class NewsEntity {
     private String image;
 
     private String summary;
+
+    private String sector;
+    private String industry;
+    private String topic;
 }

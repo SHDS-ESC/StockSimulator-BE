@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import team.shdsesc.stocksimul.dto.PageRequestDTO;
 import team.shdsesc.stocksimul.dto.PageResultDTO;
@@ -14,6 +15,7 @@ import team.shdsesc.stocksimul.userprofile.UserProfileDTO;
 import team.shdsesc.stocksimul.userprofile.UserProfileService;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @Log4j2
@@ -21,6 +23,7 @@ import java.time.LocalDate;
 public class NewsServiceImpl implements NewsService {
     private final NewsRepository newsRepository;
     private final UserProfileService userProfileService;
+    private final NewsCrawlService newsCrawlService;
 
     private final QNewsEntity qNews = QNewsEntity.newsEntity;
 
@@ -87,4 +90,49 @@ public class NewsServiceImpl implements NewsService {
     public long getTotalCount() {
         return newsRepository.count();
     }
+
+    // NewsServiceImpl.java
+    @Override
+    @Scheduled(cron = "0 00 09 * * ?")
+    public void saveCrawledNews() {
+        try {
+            log.info("뉴스 크롤링 시작");
+
+            List<NewsDTO> crawledNewsDTOs = newsCrawlService.getNewsDatas();
+
+            for (NewsDTO newsDTO : crawledNewsDTOs) {
+                if (!isDuplicateNews(newsDTO.getTitle(), newsDTO.getUrl())) {
+                    NewsEntity newsEntity = NewsEntity.builder()
+                            .source(newsDTO.getSource())
+                            .timePublished(newsDTO.getTimePublished())
+                            .title(newsDTO.getTitle())
+                            .url(newsDTO.getUrl())
+                            .image(newsDTO.getImage())
+                            .summary(newsDTO.getSummary())
+                            // 새로 추가된 필드들을 null로 설정
+                            .sector(null)
+                            .industry(null)
+                            .topic(null)
+                            .build();
+
+                    newsRepository.save(newsEntity);
+                }
+            }
+
+            log.info("뉴스 크롤링 완료: {} 개 뉴스 저장", crawledNewsDTOs.size());
+
+        } catch (Exception e) {
+            log.error("뉴스 크롤링 실패", e);
+        }
+    }
+
+    @Override
+    public boolean isDuplicateNews(String title, String url){
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(qNews.title.eq(title));
+        builder.and(qNews.url.eq(url));
+
+        return newsRepository.exists(builder);
+    }
+
 }
