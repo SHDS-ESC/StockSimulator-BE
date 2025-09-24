@@ -6,9 +6,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import team.shdsesc.stocksimul.dto.PageRequestDTO;
 import team.shdsesc.stocksimul.dto.PageResultDTO;
+
+import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/news")
@@ -17,6 +21,7 @@ import team.shdsesc.stocksimul.dto.PageResultDTO;
 @Tag(name = "News", description = "뉴스 관련 API")
 public class NewsController {
     private final NewsService newsService;
+    private final NewsCrawlService newsCrawlService;
 
     @GetMapping
     @Operation(summary = "뉴스 목록 조회", description = "페이징과 검색 조건을 통한 뉴스 목록을 조회합니다.")
@@ -67,6 +72,14 @@ public class NewsController {
                 result.getDtoList().size(), result.getTotalPage());
 
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/newscrawl")
+    public String newsCrawl(Model model) throws Exception{
+        List<NewsDTO> newsList = newsCrawlService.getNewsDatas();
+        model.addAttribute("news", newsList);
+
+        return "news";
     }
 
 }

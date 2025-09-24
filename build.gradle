@@ -42,7 +42,7 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
     implementation 'io.jsonwebtoken:jjwt-gson:0.12.6'
     //Swagger 추가
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
     // QueryDSL
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
@@ -55,6 +55,14 @@ dependencies {
 
     // http request
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    //크롤링
+    implementation 'org.jsoup:jsoup:1.17.2'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+    implementation 'org.seleniumhq.selenium:selenium-java:4.21.0' // 최신 버전을 확인하여 사용하세요
+    implementation 'io.github.bonigarcia:webdrivermanager:5.8.0' // WebDriver를 자동으로 설치/관리
+
 }
 test {
     useJUnitPlatform()  // 이 줄이 있는지 확인
