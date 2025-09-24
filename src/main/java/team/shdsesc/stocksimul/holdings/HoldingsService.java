@@ -33,6 +33,25 @@ public class HoldingsService {
     public HoldingsDTO toHoldingsResponseDTOS(HoldingsEntity holdingsEntity, LocalDateTime date) {
         // 현재 주가 (1주당)
         Double currentPrice = reportRepository.findClosesPrice(date, holdingsEntity.getStock().getStockId());
+        if (currentPrice == null) {
+            // 같은 날 종가가 없으면 이후 첫 거래일 종가로 시도
+            currentPrice = reportRepository
+                    .findFirstByIdStockIdAndIdDateGreaterThanEqualOrderByIdDateAsc(
+                            holdingsEntity.getStock().getStockId(), date)
+                    .map(team.shdsesc.stocksimul.market.entity.Report::getClose)
+                    .orElse(null);
+        }
+        if (currentPrice == null) {
+            // 그래도 없으면 이전 마지막 거래일 종가로 시도
+            currentPrice = reportRepository
+                    .findFirstByIdStockIdAndIdDateLessThanEqualOrderByIdDateDesc(
+                            holdingsEntity.getStock().getStockId(), date)
+                    .map(team.shdsesc.stocksimul.market.entity.Report::getClose)
+                    .orElse(null);
+        }
+        if (currentPrice == null) {
+            currentPrice = 0.0;
+        }
 
         // 구매시 총 투자금액
         Double totalInvested = holdingsEntity.getTotalPrice();
@@ -47,7 +66,9 @@ public class HoldingsService {
         Double profitLoss = formatUtil.changePriceFormatter(currentTotalValue - totalInvested);
 
         // 수익률 (%) = (평가손익 / 투자금액) * 100
-        Double returnRate = formatUtil.changePriceFormatter((profitLoss / totalInvested) * 100);
+        Double returnRate = totalInvested != null && totalInvested != 0.0
+                ? formatUtil.changePriceFormatter((profitLoss / totalInvested) * 100)
+                : 0.0;
 
         return HoldingsDTO.builder()
                 .ticker(holdingsEntity.getStock().getTicker())

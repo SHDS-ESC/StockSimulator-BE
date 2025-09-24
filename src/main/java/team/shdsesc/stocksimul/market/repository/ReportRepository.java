@@ -37,4 +37,10 @@ public interface ReportRepository extends JpaRepository<Report, ReportId> {
             @Param("stockId") Long stockId
     );
 
+    // 지정일과 같거나 이후 첫 거래일 레코드 (오름차순)
+    java.util.Optional<team.shdsesc.stocksimul.market.entity.Report> findFirstByIdStockIdAndIdDateGreaterThanEqualOrderByIdDateAsc(Long stockId, LocalDateTime from);
+
+    // 지정일과 같거나 이전 마지막 거래일 레코드 (내림차순)
+    java.util.Optional<team.shdsesc.stocksimul.market.entity.Report> findFirstByIdStockIdAndIdDateLessThanEqualOrderByIdDateDesc(Long stockId, LocalDateTime to);
+
 }
