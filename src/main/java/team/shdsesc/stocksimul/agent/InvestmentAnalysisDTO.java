@@ -28,6 +28,9 @@ public class InvestmentAnalysisDTO {
     @JsonProperty("max_score")
     private Integer maxScore;
 
+    @JsonProperty("min_score")
+    private Integer minScore;
+
     @JsonProperty("signals")
     private List<String> signals;
 
