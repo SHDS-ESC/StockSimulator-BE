@@ -67,7 +67,7 @@ public class UserProfileController {
     public ResponseEntity<?> updateProcessDate(@RequestBody UpdateUserProfileProcessDateDTO userProfileProcessDateDTO) {
         userProfileService.updateProcessDate(userProfileProcessDateDTO.getUserProfileId(), userProfileProcessDateDTO.getProcessDate());
         return ResponseEntity
-                .ok(holdingsService.getPortfolio(userProfileProcessDateDTO.getUserProfileId(), userProfileProcessDateDTO.getProcessDate()));
+                .ok(holdingsService.getPortfolio(userProfileProcessDateDTO.getUserProfileId(), userProfileProcessDateDTO.getPrevProcessDate(), userProfileProcessDateDTO.getProcessDate()));
     }
 }
 

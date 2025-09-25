@@ -25,4 +25,13 @@ public class OfferController  {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+//    @PostMapping("/today")
+//    public ResponseEntity<?> tradeTodayStockOffer(@RequestBody TodayOfferRequestDTO todayOfferRequestDTO) {
+//        try{
+//            return ResponseEntity.ok().body(offerService.tradeTodayOffer(todayOfferRequestDTO));
+//        }catch (Exception e){
+//            return ResponseEntity.badRequest().body(e.getMessage());
+//        }
+//    }
 }
