@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateUserProfileProcessDateDTO {
     private Long userProfileId;
+    private String prevProcessDate;
     private String processDate;
 }

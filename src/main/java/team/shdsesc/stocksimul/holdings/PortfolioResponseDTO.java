@@ -13,4 +13,6 @@ import java.util.List;
 @Builder
 public class PortfolioResponseDTO {
     private List<HoldingsDTO> holdingsDTOList;
+    private Double totalCurrentPrice;
+    private List<ChangeDTO> changeList;
 }
