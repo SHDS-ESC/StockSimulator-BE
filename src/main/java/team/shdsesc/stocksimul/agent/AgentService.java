@@ -108,6 +108,8 @@ public class AgentService {
             java.time.LocalDate end = predEnd != null ? java.time.LocalDate.parse(predEnd) : base;
             long fromEpoch = base.minusDays(30).atStartOfDay().toEpochSecond(java.time.ZoneOffset.UTC);
             long toEpoch = end.atTime(23, 59, 59).toEpochSecond(java.time.ZoneOffset.UTC);
+            long baseTs = base.atStartOfDay().toEpochSecond(java.time.ZoneOffset.UTC);
+            long baseEndTs = base.atTime(23, 59, 59).toEpochSecond(java.time.ZoneOffset.UTC);
 
             CandleResponse candles = dbMarketService.getCandles(resp.getTicker(), null, fromEpoch, toEpoch, null);
             List<ChartSeriesPoint> historical = new java.util.ArrayList<>();
@@ -132,7 +134,6 @@ public class AgentService {
             double anchor = Double.NaN;
             if (!historical.isEmpty()) {
                 // base_date 직전 마지막 값으로 앵커 설정
-                long baseTs = base.atStartOfDay().toEpochSecond(java.time.ZoneOffset.UTC);
                 for (int i = historical.size() - 1; i >= 0; i--) {
                     if (historical.get(i).getTime() < baseTs) { anchor = historical.get(i).getValue(); break; }
                 }
@@ -143,6 +144,17 @@ public class AgentService {
             }
 
             List<ChartSeriesPoint> preds = new java.util.ArrayList<>();
+            // base_date 시점의 가격(가능하면 그 날 실제 종가)을 구해 예측 시리즈의 시작점으로 추가하기 위해 보관
+            double baseDayValue = Double.NaN;
+            if (!historical.isEmpty()) {
+                for (ChartSeriesPoint p : historical) {
+                    long t = p.getTime();
+                    if (t >= baseTs && t <= baseEndTs) { baseDayValue = p.getValue(); break; }
+                }
+            }
+            if (Double.isNaN(baseDayValue)) {
+                baseDayValue = !Double.isNaN(anchor) ? anchor : (resp.getLastPrice() != null ? resp.getLastPrice() : Double.NaN);
+            }
             if (predDates != null && predPrices != null) {
                 int usable = Math.min(predDates.size(), predPrices.size());
                 if (usable > 0) {
@@ -158,6 +170,12 @@ public class AgentService {
                         preds.add(new ChartSeriesPoint(ts, val));
                     }
                 }
+            }
+            // 예측 점선이 basedate에서 시작하고, 시작 가격이 실제와 동일하도록 base_date 포인트를 선행 추가
+            boolean hasBasePoint = false;
+            for (ChartSeriesPoint p : preds) { if (p.getTime() == baseTs) { hasBasePoint = true; break; } }
+            if (!hasBasePoint && Double.isFinite(baseDayValue)) {
+                preds.add(new ChartSeriesPoint(baseTs, baseDayValue));
             }
             preds.sort(java.util.Comparator.comparingLong(ChartSeriesPoint::getTime));
             resp.setPredictions(preds);
