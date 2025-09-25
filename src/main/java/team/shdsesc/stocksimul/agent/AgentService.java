@@ -83,7 +83,7 @@ public class AgentService {
 
     /**
      * historical/predictions 시계열을 표준화하여 DTO에 채워 넣습니다.
-     * - historical: base_date - 30일 ~ pred_end_date까지의 종가를 UTC epoch 초로 정렬
+     * - historical: base_date - 50일 ~ pred_end_date까지의 종가를 UTC epoch 초로 정렬
      * - predictions: base_date 다음날부터 pred_end_date까지, base_date 직전 실제값 기준으로 리베이스
      */
     private PredictResponseDTO enrichChartSeries(PredictResponseDTO resp) {
@@ -100,13 +100,13 @@ public class AgentService {
         }
         resp.setPredEndDate(predEnd);
 
-        // 2) 과거 구간 조회: base_date - 30d ~ pred_end_date(or base_date)
+        // 2) 과거 구간 조회: base_date - 50d ~ pred_end_date(or base_date)
         String baseDate = resp.getBaseDate();
         if (baseDate == null || baseDate.isBlank()) return resp;
         try {
             java.time.LocalDate base = java.time.LocalDate.parse(baseDate);
             java.time.LocalDate end = predEnd != null ? java.time.LocalDate.parse(predEnd) : base;
-            long fromEpoch = base.minusDays(30).atStartOfDay().toEpochSecond(java.time.ZoneOffset.UTC);
+            long fromEpoch = base.minusDays(50).atStartOfDay().toEpochSecond(java.time.ZoneOffset.UTC);
             long toEpoch = end.atTime(23, 59, 59).toEpochSecond(java.time.ZoneOffset.UTC);
             long baseTs = base.atStartOfDay().toEpochSecond(java.time.ZoneOffset.UTC);
             long baseEndTs = base.atTime(23, 59, 59).toEpochSecond(java.time.ZoneOffset.UTC);
