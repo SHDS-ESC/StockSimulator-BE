@@ -47,4 +47,14 @@ public class PredictResponseDTO {
     @JsonProperty("return_predictions")
     private java.util.List<Double> returnPredictions;
 
+    // --- Front-ready chart series ---
+    @JsonProperty("historical")
+    private java.util.List<ChartSeriesPoint> historical;
+
+    @JsonProperty("predictions")
+    private java.util.List<ChartSeriesPoint> predictions;
+
+    @JsonProperty("pred_end_date")
+    private String predEndDate;
+
 }
