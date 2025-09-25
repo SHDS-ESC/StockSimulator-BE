@@ -303,6 +303,8 @@ public class RedisController {
                                         .queryParam("symbol", ticker)
                                         .queryParam("token", finnhubApiKey)
                                         .build())
+                                .header("Accept", "application/json")
+                                .header("Accept-Encoding", "identity")
                                 .retrieve()
                                 .body(String.class);
                         

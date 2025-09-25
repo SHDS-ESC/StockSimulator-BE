@@ -165,6 +165,21 @@ public class DbMarketService {
 
         final String sortKeyFinal = sortKey;
         final boolean descFinal = desc;
+        // 최소가 필터: $1 미만 종목 제외
+        rows = rows.stream()
+                .filter(r -> {
+                    Object pv = r.get("priceValue");
+                    if (pv instanceof Number) {
+                        return ((Number) pv).doubleValue() >= 1.0;
+                    }
+                    try {
+                        return Double.parseDouble(String.valueOf(pv)) >= 1.0;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .collect(java.util.stream.Collectors.toList());
+
         rows.sort((a, b) -> {
             Object va = a.get(sortKeyFinal);
             Object vb = b.get(sortKeyFinal);
@@ -243,6 +258,21 @@ public class DbMarketService {
         if (rows == null) rows = new java.util.ArrayList<>();
         final String sortKeyFinal = sortKey;
         final boolean descFinal = desc;
+        // 최소가 필터: $1 미만 종목 제외
+        rows = rows.stream()
+                .filter(r -> {
+                    Object pv = r.get("priceValue");
+                    if (pv instanceof Number) {
+                        return ((Number) pv).doubleValue() >= 1.0;
+                    }
+                    try {
+                        return Double.parseDouble(String.valueOf(pv)) >= 1.0;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .collect(java.util.stream.Collectors.toList());
+
         rows.sort((a, b) -> {
             Object va = a.get(sortKeyFinal);
             Object vb = b.get(sortKeyFinal);
