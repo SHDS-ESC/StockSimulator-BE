@@ -12,6 +12,8 @@ import team.shdsesc.stocksimul.userprofile.UserProfileRepository;
 import team.shdsesc.stocksimul.util.FormatUtil;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,7 +31,7 @@ public class OfferService {
     private final FormatUtil formatUtil;
 
     OfferEntity toOfferEntity(OfferRequestDTO dto) {
-        // 주문에 넣을 유저 프로필 가져오기ㄹ
+        // 주문에 넣을 유저 프로필 가져오기
         UserProfileEntity userProfile = userProfileRepository
                 .findById(dto.usersProfileId)
                 .orElseThrow(() -> new RuntimeException("usersProfileId not found"));
@@ -101,6 +103,31 @@ public class OfferService {
     void calcOfferStock(OfferRequestDTO offerRequestDTO) {
         OfferEntity offerEntity = toOfferEntity(offerRequestDTO);
         offerRepository.save(offerEntity);
+    }
+
+    public List<OfferResponseDTO> getOfferHistory(Long usersProfileId) {
+        List<OfferEntity> entities = offerRepository.findByUserProfile_UsersProfileIdOrderByOfferDateDesc(usersProfileId);
+
+        return entities.stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    private OfferResponseDTO toResponseDTO(OfferEntity offerEntity) {
+        Stock stock = marketStockRepository
+                .findById(offerEntity.getStock().getStockId())
+                .orElse(offerEntity.getStock());
+
+        return OfferResponseDTO.builder()
+                .offerId(offerEntity.getOfferId())
+                .offerDate(offerEntity.getOfferDate().toLocalDate())
+                .usersProfileId(offerEntity.getUserProfile().getUsersProfileId())
+                .stock(stock.getTicker())
+                .type(offerEntity.getType())
+                .quantity(offerEntity.getQuantity())
+                .price(offerEntity.getPrice())
+                .build();
+
     }
 
 //    private TodayOfferDTO toTodayOfferDto(OfferEntity offerEntity) {
