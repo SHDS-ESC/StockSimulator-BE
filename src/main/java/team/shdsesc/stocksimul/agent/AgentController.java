@@ -10,7 +10,7 @@ import java.util.Arrays;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/dev/agent")
+@RequestMapping("/api/agent")
 @Log4j2
 public class AgentController {
 
@@ -27,6 +27,21 @@ public class AgentController {
                 })
                 .onErrorResume(e -> {
                     log.error("Predict API 오류 - 요청: {}, 오류: {}", requestDTO, e.getMessage(), e);
+                    return Mono.error(e);
+                });
+    }
+
+    @PostMapping("/portfolio/cumulative-returns")
+    public Mono<ResponseEntity<PortfolioResponseDTO>> getPortfolioCumulativeReturns(@RequestBody PortfolioRequestDTO requestDTO) {
+        log.info("Portfolio cumulative returns request: {}", requestDTO);
+
+        return agentService.getPortfolioCumulativeReturns(requestDTO)
+                .map(response -> {
+                    log.info("Portfolio cumulative returns response: {}", response);
+                    return ResponseEntity.ok(response);
+                })
+                .onErrorResume(e -> {
+                    log.error("Portfolio cumulative returns API 오류 - 요청: {}, 오류: {}", requestDTO, e.getMessage(), e);
                     return Mono.error(e);
                 });
     }
@@ -98,5 +113,6 @@ public class AgentController {
                 .chartBrief("sample_chart_brief_base64_data")
                 .build());
     }
+
 
 }
