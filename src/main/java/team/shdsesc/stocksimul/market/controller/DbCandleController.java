@@ -91,12 +91,13 @@ public class DbCandleController {
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "size", required = false, defaultValue = "6") Integer size,
             @RequestParam(value = "sort", required = false, defaultValue = "changePercent,desc") String sort,
-            @RequestParam(value = "symbols", required = false) String symbolsCsv
+            @RequestParam(value = "symbols", required = false) String symbolsCsv,
+            @RequestParam(value = "filterLowPrice", required = false, defaultValue = "false") Boolean filterLowPrice
     ) {
         try {
             LocalDate date = LocalDate.parse(dateStr);
             // 휴장일 자동 스킵이 포함된 응답 사용 (기본 30일 범위)
-            java.util.Map<String, Object> pageResp = dbMarketService.getSnapshotPageWithSkip(date, page, size, sort, symbolsCsv, 30);
+            java.util.Map<String, Object> pageResp = dbMarketService.getSnapshotPageWithSkip(date, page, size, sort, symbolsCsv, 30, filterLowPrice);
             return ResponseEntity.ok(pageResp);
         } catch (Exception e) {
             java.util.Map<String, Object> resp = new java.util.HashMap<>();
