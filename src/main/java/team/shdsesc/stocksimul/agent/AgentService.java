@@ -26,16 +26,7 @@ public class AgentService {
     private final DbMarketService dbMarketService;
 
     public Mono<PredictResponseDTO> predict(PredictRequestDTO requestDTO) {
-        // HTTP 클라이언트 타임아웃 설정 (5분)
-        HttpClient httpClient = HttpClient.create()
-                .responseTimeout(Duration.ofMinutes(5))  // 응답 타임아웃
-                .option(io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);  // 연결 타임아웃 30초
-
-        WebClient webClient = WebClient.builder()
-                .baseUrl(fastApiUrl)
-                .clientConnector(new ReactorClientHttpConnector(httpClient))
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
+        WebClient webClient = createWebClient();
 
         return webClient.post()
                 .uri("/predict")
@@ -52,7 +43,32 @@ public class AgentService {
                     return Mono.error(throwable);
                 });
     }
+    public Mono<PortfolioResponseDTO> getPortfolioCumulativeReturns(PortfolioRequestDTO requestDTO) {
+        WebClient webClient = createWebClient();
 
+        return webClient.post()
+                .uri("/portfolio/cumulative-returns")
+                .bodyValue(requestDTO)
+                .retrieve()
+                .bodyToMono(PortfolioResponseDTO.class)
+                .timeout(Duration.ofMinutes(5))  // Mono 레벨 타임아웃도 5분으로 설정
+                .onErrorResume(throwable -> {
+                    return Mono.error(throwable);
+                });
+    }
+
+    private WebClient createWebClient() {
+        // HTTP 클라이언트 타임아웃 설정 (5분)
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofMinutes(5))  // 응답 타임아웃
+                .option(io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);  // 연결 타임아웃 30초
+
+        return WebClient.builder()
+                .baseUrl(fastApiUrl)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+    }
     /**
      * FastAPI 응답에 return_predictions가 없거나 비어 있을 때,
      * last_price와 price_predictions로 일별 수익률을 계산해 채웁니다.
