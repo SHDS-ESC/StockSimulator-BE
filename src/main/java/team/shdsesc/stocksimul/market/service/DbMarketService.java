@@ -227,7 +227,7 @@ public class DbMarketService {
      * 요청된 날짜에 데이터가 없으면 앞으로 하루씩 이동하며 데이터가 있는 첫 날짜를 effectiveDate로 사용.
      * 최대 maxForwardDays까지만 탐색.
      */
-    public java.util.Map<String, Object> getSnapshotPageWithSkip(LocalDate requested, Integer page, Integer size, String sort, String symbolsCsv, int maxForwardDays) {
+    public java.util.Map<String, Object> getSnapshotPageWithSkip(LocalDate requested, Integer page, Integer size, String sort, String symbolsCsv, int maxForwardDays, Boolean filterLowPrice) {
         LocalDate effective = requested;
         int skipped = 0;
         List<java.util.Map<String, Object>> rows = getSnapshotRows(effective);
@@ -258,20 +258,23 @@ public class DbMarketService {
         if (rows == null) rows = new java.util.ArrayList<>();
         final String sortKeyFinal = sortKey;
         final boolean descFinal = desc;
-        // 최소가 필터: $1 미만 종목 제외
-        rows = rows.stream()
-                .filter(r -> {
-                    Object pv = r.get("priceValue");
-                    if (pv instanceof Number) {
-                        return ((Number) pv).doubleValue() >= 1.0;
-                    }
-                    try {
-                        return Double.parseDouble(String.valueOf(pv)) >= 1.0;
-                    } catch (Exception e) {
-                        return false;
-                    }
-                })
-                .collect(java.util.stream.Collectors.toList());
+        
+        // 조건부 최소가 필터: filterLowPrice가 true일 때만 $1 미만 종목 제외
+        if (filterLowPrice != null && filterLowPrice) {
+            rows = rows.stream()
+                    .filter(r -> {
+                        Object pv = r.get("priceValue");
+                        if (pv instanceof Number) {
+                            return ((Number) pv).doubleValue() >= 1.0;
+                        }
+                        try {
+                            return Double.parseDouble(String.valueOf(pv)) >= 1.0;
+                        } catch (Exception e) {
+                            return false;
+                        }
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+        }
 
         rows.sort((a, b) -> {
             Object va = a.get(sortKeyFinal);
@@ -444,6 +447,13 @@ public class DbMarketService {
 
     private static Double nullSafeDouble(Long v) {
         return v == null ? 0.0 : v.doubleValue();
+    }
+
+    /**
+     * 기존 호환성을 위한 오버로드 메서드 (filterLowPrice 없이)
+     */
+    public java.util.Map<String, Object> getSnapshotPageWithSkip(LocalDate requested, Integer page, Integer size, String sort, String symbolsCsv, int maxForwardDays) {
+        return getSnapshotPageWithSkip(requested, page, size, sort, symbolsCsv, maxForwardDays, false);
     }
 }
 

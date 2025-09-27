@@ -19,6 +19,10 @@ public class PredictRequestDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     LocalDate baseDate;
 
+    @JsonProperty("process_date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    LocalDate processDate;
+
     int trainDays;
 
     int predictSteps;
