@@ -35,8 +35,8 @@ public class AgentService {
                 .bodyToMono(PredictResponseDTO.class)
                 // FastAPI가 return_predictions를 비워 보낸 경우 보강
                 .map(this::ensureReturnPredictions)
-                // 프론트가 바로 사용할 수 있도록 시계열 정규화
-                .map(this::enrichChartSeries)
+                // 프론트가 바로 사용할 수 있도록 시계열 정규화 (process_date 전달)
+                .map(response -> enrichChartSeries(response, requestDTO.getProcessDate()))
                 .timeout(Duration.ofMinutes(5))  // Mono 레벨 타임아웃도 5분으로 설정
                 .onErrorResume(throwable -> {
 //                    return Mono.just(new PredictResponseDTO());
@@ -101,8 +101,9 @@ public class AgentService {
      * historical/predictions 시계열을 표준화하여 DTO에 채워 넣습니다.
      * - historical: base_date - 50일 ~ pred_end_date까지의 종가를 UTC epoch 초로 정렬
      * - predictions: base_date 다음날부터 pred_end_date까지, base_date 직전 실제값 기준으로 리베이스
+     * - process_date가 있으면 해당 날짜 이후의 historical 데이터는 필터링하여 스포일러 방지
      */
-    private PredictResponseDTO enrichChartSeries(PredictResponseDTO resp) {
+    private PredictResponseDTO enrichChartSeries(PredictResponseDTO resp, java.time.LocalDate processDate) {
         if (resp == null) return null;
 
         // 1) pred_end_date 계산
@@ -143,6 +144,15 @@ public class AgentService {
                 }
             }
             historical.sort(java.util.Comparator.comparingLong(ChartSeriesPoint::getTime));
+            
+            // process_date가 있으면 해당 날짜 이후의 historical 데이터 필터링
+            if (processDate != null) {
+                long processTimestamp = processDate.atTime(23, 59, 59).toEpochSecond(java.time.ZoneOffset.UTC);
+                historical = historical.stream()
+                        .filter(point -> point.getTime() <= processTimestamp)
+                        .collect(java.util.stream.Collectors.toList());
+            }
+            
             resp.setHistorical(historical);
 
             // 3) predictions 시리즈 생성 (리베이스)
@@ -200,6 +210,13 @@ public class AgentService {
         } catch (Exception e) {
             return resp; // 파싱 실패 시 원본 유지
         }
+    }
+
+    /**
+     * 기존 호환성을 위한 오버로드 메서드 (process_date 없이)
+     */
+    private PredictResponseDTO enrichChartSeries(PredictResponseDTO resp) {
+        return enrichChartSeries(resp, null);
     }
 
 }
