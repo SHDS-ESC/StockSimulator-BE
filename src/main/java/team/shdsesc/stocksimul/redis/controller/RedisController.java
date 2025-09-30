@@ -33,6 +33,7 @@ public class RedisController {
     
     private final List<String> allTickers = new ArrayList<>();
     private boolean schedulerEnabled = false;
+    private volatile boolean isSchedulerRunning = false;
 
     @Value("${market.scheduler.enabled:false}")
     private boolean schedulerEnabledDefault;
@@ -179,11 +180,17 @@ public class RedisController {
         Map<String, Object> status = new HashMap<>();
         status.put("enabled", schedulerEnabled);
         status.put("totalTickers", allTickers.size());
+        status.put("isRunning", isSchedulerRunning);
         return ResponseEntity.ok(status);
     }
 
     @PostMapping("/scheduler/run-now")
     public ResponseEntity<String> runSchedulerNow() {
+        if (isSchedulerRunning) {
+            uiLog("스케줄러가 이미 실행 중입니다. 중복 실행을 방지합니다.");
+            return ResponseEntity.badRequest().body("스케줄러가 이미 실행 중입니다.");
+        }
+        
         if (verboseLog) {
             log.info("수동 스케줄러 실행 요청됨 (배치 방식)");
         }
@@ -264,6 +271,15 @@ public class RedisController {
         if (!schedulerEnabled || allTickers.isEmpty()) {
             return;
         }
+        
+        if (isSchedulerRunning) {
+            if (verboseLog) {
+                log.info("스케줄러가 이미 실행 중입니다. 중복 실행을 건너뜁니다.");
+            }
+            uiLog("스케줄러가 이미 실행 중입니다. 중복 실행을 건너뜁니다.");
+            return;
+        }
+        
         updateAllTickersBatch();
     }
 
@@ -276,6 +292,10 @@ public class RedisController {
             uiLog("티커 목록이 비어있습니다. Redis 초기화를 먼저 실행하세요.");
             return;
         }
+        
+        // 실행 중 플래그 설정
+        isSchedulerRunning = true;
+        
         CompletableFuture.runAsync(() -> {
             int totalBatches = (int) Math.ceil((double) allTickers.size() / Math.max(1, batchSize));
             int successCount = 0;
@@ -355,6 +375,9 @@ public class RedisController {
                 log.info("==========================================");
             }
             uiLog("배치 스케줄러 완료: 성공=" + successCount + ", 실패=" + failCount + ", 소요=" + totalTime + "초");
+            
+            // 실행 완료 후 플래그 해제
+            isSchedulerRunning = false;
         });
     }
 
