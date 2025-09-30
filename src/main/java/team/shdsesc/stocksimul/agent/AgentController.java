@@ -31,17 +31,17 @@ public class AgentController {
                 });
     }
 
-    @PostMapping("/portfolio/cumulative-returns")
-    public Mono<ResponseEntity<PortfolioResponseDTO>> getPortfolioCumulativeReturns(@RequestBody PortfolioRequestDTO requestDTO) {
-        log.info("Portfolio cumulative returns request: {}", requestDTO);
+    @PostMapping("/portfolio/analysis")
+    public Mono<ResponseEntity<PortfolioResponseDTO>> getPortfolioAnalysis(@RequestBody PortfolioRequestDTO requestDTO) {
+        log.info("Portfolio analysis request: {}", requestDTO);
 
-        return agentService.getPortfolioCumulativeReturns(requestDTO)
+        return agentService.getPortfolioAnalysis(requestDTO)
                 .map(response -> {
-                    log.info("Portfolio cumulative returns response: {}", response);
+                    log.info("Portfolio analysis response: {}", response);
                     return ResponseEntity.ok(response);
                 })
                 .onErrorResume(e -> {
-                    log.error("Portfolio cumulative returns API 오류 - 요청: {}, 오류: {}", requestDTO, e.getMessage(), e);
+                    log.error("Portfolio analysis API 오류 - 요청: {}, 오류: {}", requestDTO, e.getMessage(), e);
                     return Mono.error(e);
                 });
     }

@@ -43,11 +43,11 @@ public class AgentService {
                     return Mono.error(throwable);
                 });
     }
-    public Mono<PortfolioResponseDTO> getPortfolioCumulativeReturns(PortfolioRequestDTO requestDTO) {
+    public Mono<PortfolioResponseDTO> getPortfolioAnalysis(PortfolioRequestDTO requestDTO) {
         WebClient webClient = createWebClient();
 
         return webClient.post()
-                .uri("/portfolio/cumulative-returns")
+                .uri("/portfolio/analysis")
                 .bodyValue(requestDTO)
                 .retrieve()
                 .bodyToMono(PortfolioResponseDTO.class)
