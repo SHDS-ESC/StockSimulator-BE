@@ -46,6 +46,21 @@ public class AgentController {
                 });
     }
 
+    @PostMapping("/investment/review")
+    public Mono<ResponseEntity<InvestmentReviewResponseDTO>> getInvestmentReview(@RequestBody InvestmentReviewRequestDTO requestDTO) {
+        log.info("Investment review request: {}", requestDTO);
+
+        return agentService.getInvestmentReview(requestDTO)
+                .map(response -> {
+                    log.info("Investment review response generated successfully");
+                    return ResponseEntity.ok(response);
+                })
+                .onErrorResume(e -> {
+                    log.error("Investment review API 오류 - 요청: {}, 오류: {}", requestDTO, e.getMessage(), e);
+                    return Mono.error(e);
+                });
+    }
+
     @PostMapping("/predict-sample")
     public ResponseEntity<PredictResponseDTO> predictSample() {
         // 메트릭 데이터 (전체 필드 포함)
