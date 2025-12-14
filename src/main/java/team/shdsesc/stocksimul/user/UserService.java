@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import team.shdsesc.stocksimul.redis.dao.RedisDAO;
+import team.shdsesc.stocksimul.userprofile.UserProfileRepository;
 
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +21,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final UsersLikesRepository usersLikesRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisDAO redisDAO;
 
@@ -29,26 +33,40 @@ public class UserService implements UserDetailsService {
         log.info("username:{}", email);
         UserEntity userEntity = result.orElseThrow(() -> new UsernameNotFoundException("Wrong ClientId or ClientSecret"));
         log.info("UserEntity:{}", userEntity);
-        UserDTO dto = UserEntity.toUsersDTO(userEntity);
+        UserDTO dto = toUsersDTO(userEntity);
         log.info("loadUserByUsername:{}", dto);
         return dto;
     }
 
+    public UserDTO toUsersDTO(UserEntity userEntity) {
+        return new UserDTO(
+                userEntity.getRegDate(),
+                userEntity.getModDate(),
+                userEntity.getUsersId(),
+                userEntity.getEmail(),
+                userEntity.getLastProfileId(),
+                userEntity.getPassword(),
+                userEntity.getLevel(),
+                userEntity.getUsersRoles().stream()
+                        .map(role -> new SimpleGrantedAuthority(role.toString()))
+                        .toList()
+        );
+    }
+
     public ResponseEntity<UserDTO> registerUser(UserRequestDTO request) {
         UserEntity userEntity = UserEntity.builder()
-                .usersEmail(request.getEmail())
-                .usersPassword(passwordEncoder.encode(request.getPassword()))
-                .usersLevel(Integer.parseInt(request.getLevel()))
-                .tickerList(request.getTickerList())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .level(Integer.parseInt(request.getLevel()))
                 .build();
 
         userEntity.addMemberRole(UserRole.USER);
         userRepository.save(userEntity);
         return ResponseEntity.ok()
-                .body(UserEntity.toUsersDTO(userEntity));
+                .body(toUsersDTO(userEntity));
     }
 
-    public ResponseEntity<?> logoutUser(String username){
+    public ResponseEntity<?> logoutUser(String username) {
         // Redis에서 Refresh Token 삭제
         deleteRefreshToken(username);
         log.info("로그아웃 호출");
@@ -60,7 +78,7 @@ public class UserService implements UserDetailsService {
                 .maxAge(0)// 만료시킴
                 .build();
 
-       return ResponseEntity.ok()
+        return ResponseEntity.ok()
                 .header("Set-Cookie", cookie.toString())
                 .body(Map.of("message", "로그아웃 성공"));
     }

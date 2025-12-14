@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.User;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 
 @Getter
 @Setter
@@ -19,18 +18,18 @@ public class UserDTO extends User {
     private String email;
     private String secretPassword;
     private int level;
-    private List<String> tickerList;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long lastProfileId;
 
-    public UserDTO(LocalDateTime createdAt,LocalDateTime updatedAt, Long userId, String email, String password, int level, List<String> tickerList, Collection<? extends GrantedAuthority> authorities) {
+    public UserDTO(LocalDateTime createdAt, LocalDateTime updatedAt, Long userId, String email, Long lastProfileId, String password, int level, Collection<? extends GrantedAuthority> authorities) {
         super(email, password, authorities);
         this.userId = userId;
         this.email = email;
+        this.lastProfileId = lastProfileId;
         this.secretId = email;
         this.secretPassword = password;
         this.level = level;
-        this.tickerList = tickerList;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
