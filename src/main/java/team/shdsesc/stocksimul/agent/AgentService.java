@@ -6,6 +6,9 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import team.shdsesc.stocksimul.market.service.DbMarketService;
 import team.shdsesc.stocksimul.market.dto.CandleResponse;
@@ -20,6 +23,7 @@ import reactor.netty.http.client.HttpClient;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +35,7 @@ public class AgentService {
 
     private final DbMarketService dbMarketService;
     private final ChatModel chatModel;
+    private final VectorStore vectorStore;
 
     public Mono<PredictResponseDTO> predict(PredictRequestDTO requestDTO) {
         WebClient webClient = createWebClient();
@@ -245,17 +250,20 @@ public class AgentService {
                 ? getPortfolioAnalysis(requestDTO.getPortfolioRequest())
                 : Mono.just(new PortfolioResponseDTO());
 
-        // 2. 두 결과를 조합하여 LLM에 전달
+        // 2. RAG 기반 컨텍스트 생성
         return Mono.zip(predictMono, portfolioMono)
                 .flatMap(tuple -> {
                     PredictResponseDTO predictResponse = tuple.getT1();
                     PortfolioResponseDTO portfolioResponse = tuple.getT2();
 
-                    // 3. LLM 프롬프트 생성
-                    String prompt = buildInvestmentReviewPrompt(predictResponse, portfolioResponse);
+                    // 3. RAG 컨텍스트 생성 (벡터 스토어에서 관련 문서 검색)
+                    String ragContext = buildRagContext(predictResponse, portfolioResponse);
+
+                    // 4. LLM 프롬프트 생성 (RAG 컨텍스트 + 예측/포트폴리오 데이터)
+                    String prompt = buildInvestmentReviewPrompt(predictResponse, portfolioResponse, ragContext);
                     log.info("Sending prompt to LLM: {}", prompt.substring(0, Math.min(200, prompt.length())));
 
-                    // 4. LLM 호출 (동기적으로 처리)
+                    // 5. LLM 호출 (동기적으로 처리)
                     try {
                         Prompt promptObj = new Prompt(new UserMessage(prompt));
                         ChatResponse chatResponse = chatModel.call(promptObj);
@@ -263,7 +271,7 @@ public class AgentService {
 
                         log.info("LLM review generated successfully");
 
-                        // 5. 응답 생성
+                        // 6. 응답 생성
                         return Mono.just(InvestmentReviewResponseDTO.builder()
                                 .review(review)
                                 .predictResponse(predictResponse)
@@ -282,11 +290,67 @@ public class AgentService {
     }
 
     /**
-     * 예측 결과와 포트폴리오 분석 결과를 바탕으로 LLM 프롬프트를 생성합니다.
+     * RAG용 질의를 구성하고 VectorStore에서 관련 문서를 검색해
+     * 하나의 컨텍스트 문자열로 합칩니다.
      */
-    private String buildInvestmentReviewPrompt(PredictResponseDTO predictResponse, PortfolioResponseDTO portfolioResponse) {
+    private String buildRagContext(PredictResponseDTO predictResponse, PortfolioResponseDTO portfolioResponse) {
+        try {
+            StringBuilder question = new StringBuilder();
+
+            if (predictResponse != null && predictResponse.getTicker() != null) {
+                question.append("종목 ")
+                        .append(predictResponse.getTicker())
+                        .append("의 수익률, 변동성, 상승 확률, Sharpe 비율과 관련된 투자 리스크와 전략.\n");
+            }
+
+            if (portfolioResponse != null && portfolioResponse.getMetrics() != null
+                    && !portfolioResponse.getMetrics().isEmpty()) {
+                question.append("포트폴리오의 누적 수익률, 최대 낙폭, 변동성, Sharpe/Sortino 비율을 고려한 자산 배분 및 리밸런싱 전략.\n");
+            }
+
+            String query = question.length() > 0
+                    ? question.toString()
+                    : "일반적인 주식 투자 리스크 관리와 분산 투자 전략에 대한 설명.";
+
+            SearchRequest searchRequest = SearchRequest.builder()
+                    .query(query)
+                    .topK(5)
+                    .build();
+
+            List<Document> results = vectorStore.similaritySearch(searchRequest);
+
+            if (results == null || results.isEmpty()) {
+                log.info("RAG 검색 결과 없음. query={}", query);
+                return "";
+            }
+
+            String context = results.stream()
+                    .filter(Document::isText)
+                    .map(doc -> "- " + doc.getText())
+                    .collect(Collectors.joining("\n"));
+
+            log.info("RAG 컨텍스트 생성 완료. 문서 수: {}", results.size());
+            return context;
+        } catch (Exception e) {
+            log.warn("RAG 컨텍스트 생성 중 오류 발생: {}", e.getMessage(), e);
+            return "";
+        }
+    }
+
+    /**
+     * 예측 결과와 포트폴리오 분석 결과, RAG 컨텍스트를 바탕으로 LLM 프롬프트를 생성합니다.
+     */
+    private String buildInvestmentReviewPrompt(PredictResponseDTO predictResponse,
+                                               PortfolioResponseDTO portfolioResponse,
+                                               String ragContext) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("당신은 전문 투자 분석가입니다. 주어진 주식 예측 데이터와 포트폴리오 분석 데이터를 바탕으로 투자 점검 리포트를 작성해주세요.\n\n");
+        prompt.append("당신은 전문 투자 분석가입니다. 주어진 RAG 컨텍스트, 주식 예측 데이터, 포트폴리오 분석 데이터를 바탕으로 투자 점검 리포트를 작성해주세요.\n\n");
+
+        // RAG 컨텍스트
+        if (ragContext != null && !ragContext.isBlank()) {
+            prompt.append("=== RAG 컨텍스트 (내부 투자 가이드/설명 문서에서 검색된 내용) ===\n");
+            prompt.append(ragContext).append("\n\n");
+        }
 
         // 예측 데이터 요약
         if (predictResponse != null && predictResponse.getTicker() != null) {
